@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\Main.cpp" />
+    <ClCompile Include="Application\Application.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\Options.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
+    <ClCompile Include="GfxAPI\GfxAPI.cpp">
+      <Filter>GfxAPI</Filter>
+    </ClCompile>
+    <ClCompile Include="GfxAPI\Window.cpp">
+      <Filter>GfxAPI</Filter>
+    </ClCompile>
+    <ClCompile Include="GfxAPINull\GfxAPINull.cpp">
+      <Filter>GfxAPINull</Filter>
+    </ClCompile>
+    <ClCompile Include="GfxAPIVulkan\GfxAPIVulkan.cpp">
+      <Filter>GfxAPIVulkan</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Application">
+      <UniqueIdentifier>{e40e9531-7db2-4111-b734-112562b3de57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Config">
+      <UniqueIdentifier>{b457cd04-512f-4959-86c9-bb854bb15308}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GfxAPI">
+      <UniqueIdentifier>{047c1a93-6522-41e3-bd67-789576764628}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GfxAPINull">
+      <UniqueIdentifier>{9a5c1e65-d7ef-40fa-887c-a57b440d3334}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GfxAPIVulkan">
+      <UniqueIdentifier>{4dbf1610-3874-476b-98cf-969fc15fc343}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty">
+      <UniqueIdentifier>{d8197585-edb7-4f3b-a07b-7cb6176976f7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="PrecompiledHeader.h" />
+    <ClInclude Include="Application\Application.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\Options.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="GfxAPI\GfxAPI.h">
+      <Filter>GfxAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="GfxAPI\Window.h">
+      <Filter>GfxAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="GfxAPINull\GfxAPINull.h">
+      <Filter>GfxAPINull</Filter>
+    </ClInclude>
+    <ClInclude Include="GfxAPIVulkan\GfxAPIVulkan.h">
+      <Filter>GfxAPIVulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\stb_image.h">
+      <Filter>ThirdParty</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\tiny_obj_loader.h">
+      <Filter>ThirdParty</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
