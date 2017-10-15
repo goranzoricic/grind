@@ -2,3 +2,5 @@
 *.opendb
 *.suo
 _solution_VS2017/Intermediate_VS2017/
+Engine/Engine.vcxproj.user
+_solution_VS2017/.vs/
