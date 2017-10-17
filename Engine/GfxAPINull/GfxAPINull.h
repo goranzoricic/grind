@@ -16,5 +16,10 @@ public:
 
     // Render a frame.
     virtual void Render();
+
+    // Create the backend (API internal) representation for a frontend (external, API agnostic) mesh.
+    virtual MeshBackend *CreateBackend(const Mesh *resFrontend);
 };
+
+
 

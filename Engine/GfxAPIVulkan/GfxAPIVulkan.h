@@ -94,6 +94,9 @@ public:
     // Render a frame.
     virtual void Render(); 
 
+    // Create the backend (API internal) representation for a frontend (external, API agnostic) mesh.
+    virtual class MeshBackend *CreateBackend(const class Mesh *resFrontend);
+
 private:
     // Called when the application's window is resized.
     void OnWindowResized(GLFWwindow* window, uint32_t width, uint32_t height);

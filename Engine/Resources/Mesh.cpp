@@ -2,9 +2,12 @@
 
 #include "Resources/ResourcePtr.h"
 #include "Resources/ResourcePtr.hpp"
-#include "Resources/Mesh.h"
 #include "Resources/ResourceManager.h"
+#include "GfxAPI/GfxAPI.h"
 
+#include "GfxAPI/MeshBackend.h"
+
+#include "Resources/Mesh.h"
 
 // Factory function that creates a mesh resource. If a mesh resource with the given name is already stored in the
 // ResourceManager, a new one won't be created. 
@@ -31,7 +34,7 @@ Mesh::~Mesh() {
 
 // Load the mesh from an .obj file.
 void Mesh::LoadOBJ(const std::string &strMeshObjFile) {
-
+    backMesh = GfxAPI::Get()->CreateBackend(this);
 }
 
 

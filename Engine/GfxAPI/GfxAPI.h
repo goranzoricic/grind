@@ -12,6 +12,17 @@ class Window;
 // for the application and the render. The class is abstract, all required methods need to be implemented
 // by concrete classes.
 class GfxAPI {
+protected:
+    // Constructor and destructor are only available to derived classes.
+    GfxAPI() {};
+    virtual ~GfxAPI() {};
+
+public:
+    // Forbid the copy constructor and assignment to prevent multiple copies.
+    GfxAPI(GfxAPI const &) = delete;
+    void operator = (GfxAPI const &) = delete;
+
+// Public interface.
 public:
     // Get the current graphics API instance.
     static GfxAPI *Get();
@@ -20,8 +31,7 @@ public:
     static GfxAPI *CreateVulkan();
     // Create a Null graphics API.
     static GfxAPI *CreateNull();
-    
-public:
+
     // Initialize the API. Returns true if successfull. Pass window dimensions.
     virtual bool Initialize(uint32_t dimWidth, uint32_t dimHeight) = 0;
     // Destroy the API. Returns true if successfull.
@@ -32,15 +42,8 @@ public:
     // Render a frame.
     virtual void Render() = 0;
 
-protected:
-    // Constructor and destructor are only available to derived classes.
-    GfxAPI() {};
-    virtual ~GfxAPI() {};
-
-public:
-    // Forbid the copy constructor and assignment to prevent multiple copies.
-    GfxAPI(GfxAPI const &) = delete;
-    void operator = (GfxAPI const &) = delete;
+    // Create the backend (API internal) representation for a frontend (external, API agnostic) mesh.
+    virtual class MeshBackend *CreateBackend(const class Mesh *resFrontend) = 0;
 
 protected:
     // Application window

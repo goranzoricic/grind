@@ -2,6 +2,8 @@
 
 #include "Resources/Resource.h"
 
+class MeshBackend;
+
 // Mesh class is the engine-side representation of object geometry. It loads geometry data from an .obj file
 // and creates a GfxAPI backend representation of it. A Mesh is a reference counted resource stored in the ResourceManager.
 class Mesh : public Resource {
@@ -29,4 +31,7 @@ public:
 private:
     // Destroy the mesh. 
     virtual void Destroy();
+
+    // GfxAPI backed object for this mesh.
+    MeshBackend *backMesh = { nullptr };
 };

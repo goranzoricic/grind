@@ -140,13 +140,19 @@
     <ClCompile Include="..\Main.cpp" />
     <ClCompile Include="Application\Application.cpp" />
     <ClCompile Include="Config\Options.cpp" />
+    <ClCompile Include="Core\Backend.cpp" />
     <ClCompile Include="GfxAPINull\GfxAPINull.cpp" />
     <ClCompile Include="GfxAPIVulkan\GfxAPIVulkan.cpp" />
+    <ClCompile Include="GfxAPIVulkan\MeshBackendVulkan.cpp" />
     <ClCompile Include="GfxAPI\GfxAPI.cpp" />
+    <ClCompile Include="GfxAPI\MeshBackend.cpp" />
     <ClCompile Include="GfxAPI\Window.cpp" />
     <ClCompile Include="Resources\Mesh.cpp" />
     <ClCompile Include="Resources\Resource.cpp" />
     <ClCompile Include="Resources\ResourceManager.cpp" />
+    <ClInclude Include="Core\Backend.h" />
+    <ClInclude Include="GfxAPIVulkan\MeshBackendVulkan.h" />
+    <ClInclude Include="GfxAPI\MeshBackend.h" />
     <ClInclude Include="Resources\ResourcePtr.hpp">
       <FileType>CppCode</FileType>
     </ClInclude>

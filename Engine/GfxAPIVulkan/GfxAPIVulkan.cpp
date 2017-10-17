@@ -13,6 +13,10 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "../ThirdParty/tiny_obj_loader.h"
 
+#include <GfxAPIVulkan/MeshBackendVulkan.h>
+#include <Resources/Mesh.h>
+
+
 // List of validation layers' names that we want to enable.
 const std::vector<const char*> validationLayers = {
     // this is a standard set of validation layers, not a single layer
@@ -2179,4 +2183,9 @@ void GfxAPIVulkan::Render() {
     // wait for the device to finish rendering
     // not needed in a proper application where there are other things to do while the grahics card and thread to their thing
     vkDeviceWaitIdle(vkhLogicalDevice);
+}
+
+
+MeshBackend *GfxAPIVulkan::CreateBackend(const Mesh *resFrontend) {
+    return new MeshBackendVulkan();
 }
