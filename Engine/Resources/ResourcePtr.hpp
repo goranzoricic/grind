@@ -1,3 +1,4 @@
+#pragma once
 #include "Resources/Resource.h"
 
 // A resource pointer should never be default constructed. It should a always be give a pointer to an object.
@@ -24,7 +25,6 @@ ResourcePtr<T>::ResourcePtr(T * const presOther) {
     assert(presResource == nullptr);
     presResource = presOther;
     presResource->AddReference();
-
 }
 
 

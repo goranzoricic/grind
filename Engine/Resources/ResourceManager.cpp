@@ -32,37 +32,34 @@ ResourceManager::~ResourceManager() {
 
 
 // Obtain a resource by its name. If it doesn't exist yet, create it, otherwise return the created one.
-template <class T>
-std::shared_ptr<T> ResourceManager::ObtainResource(const std::string &strResourceName) {
-    std::shared_ptr<T> resResource;
+Resource *ResourceManager::ObtainResource(const std::string &strResourceName) {
+    // return null if the resource isn't registered
+    Resource *resResource = nullptr;
     // if a resource with the given name (path) exists in the manager, return that
     auto resResourceInstance = mapresResources.find(strResourceName);
     if (resResourceInstance != mapresResources.end()) {
-        resResource = resResource->second;
-    // else, create a new resource with the given name and return it
-    } else {
-        resResource = T::Create(strResourceName);
-    }
+        resResource = resResourceInstance->second;
+    }    
     return resResource;
 }
 
 
+// Store a resource in the manager.
+void ResourceManager::RegisterResource(Resource *presResource) {
+    // check that the resource hasn't already been added
+    auto resResourceInstance = mapresResources.find(presResource->GetName());
+    assert(resResourceInstance != mapresResources.end());
+
+    // add the resource to the map
+    mapresResources[presResource->GetName()] = presResource;
+}
+
+
 // Release a reference to a resource. If the reference count reaches one (the last reference is from the resource manager), unload the resource and destroy it.
-template <class T>
-void ResourceManager::ReleaseResource(const std::weak_ptr<T> &resResource) {
-    //
-    auto resLocked = resResource.lock();
-    auto ctErased = mapresResources.erase(resLocked->GetName());
+void ResourceManager::UnregisterResource(const Resource *resResource) {
+    auto ctErased = mapresResources.erase(resResource->GetName());
     if (ctErased == 0) {
-        throw std::runtime_error("ResourceManager::ReleaseResource releasing a resource that isn't stored in the manager!");
+        throw std::runtime_error("[ResourceManager::ReleaseResource] releasing a resource that isn't stored in the manager!");
     }
 }
 
-// Store a resource in the manager.asdasd
-template <class T>
-void ResourceManager::StoreResource(const std::string &key, const std::shared_ptr<T> &presResource) {
-    if (ObtainResource(key) != nullptr) {
-        throw std::runtime_error("ResourceManager::StoreResource storing resource already in the manager!");
-    }
-    mapresResources[key] = presResource;
-}

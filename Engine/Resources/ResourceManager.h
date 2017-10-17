@@ -20,22 +20,17 @@ private:
     
 public:
     // Obtain a resource by its name. If it doesn't exist yet, create it, otherwise return the created one.
-    template <class T>
-    std::shared_ptr<T> ObtainResource(const std::string &strResourceName);
+    Resource *ObtainResource(const std::string &strResourceName);
 
-    // Release a reference to a resource. If the reference count reaches one (the last reference is from the resource manager), unload the resource and destroy it.
-    template <class T>
-    void ReleaseResource(const std::weak_ptr<T> &resResource);
-
-private:
-    // Store a resource in the manager.
-    template <class T>
-    void StoreResource(const std::string &key, const std::shared_ptr<T> &presResource);
+    // Register a resource with the manager so that it can be reused.
+    void RegisterResource(Resource *resResource);
+    // Remove the resource from the manager. This is done from the Resource class when its reference count reaches zero.
+    void UnregisterResource(const Resource *resResource);
 
 private:
     // Resource manager singleton.
     static std::unique_ptr<ResourceManager> mgrUniqueInstance;
     
     // Map of all currently active resources.
-    std::unordered_map<std::string, std::weak_ptr<Resource> > mapresResources;
+    std::unordered_map<std::string, Resource *> mapresResources;
 };

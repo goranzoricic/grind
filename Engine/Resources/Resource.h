@@ -8,7 +8,7 @@ public:
     virtual ~Resource();
 
     // Get the resource's name.
-    std::string GetName() { return strName; }
+    std::string GetName() const { return strName; }
 
 private:
     // ResorucePtr class is allowed to access the reference count and destroy a resource.
@@ -19,9 +19,13 @@ private:
     std::string strName;
 
     // Refence count for the resource.
-    uint32_t ctReferences;
-    void AddReference() {};
-    void RemoveReference() {};
-    // Destroy the resource. Has to be overloaded by concrete classes
-    virtual void Destroy() = 0;
+    uint32_t ctReferences = { 0 };
+
+    // Add a refrence to the resource.
+    void AddReference();
+    // Remove a reference from the resource, destroying it if it was the last reference.
+    void RemoveReference();
+
+    // Destroy the resource. Has to be overloaded by derived classes
+    virtual void Destroy();
 };
