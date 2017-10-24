@@ -5,12 +5,13 @@
 class Resource {
 public:
     Resource();
+    Resource(const std::string &strResoruceName);
     virtual ~Resource();
 
     // Get the resource's name.
     std::string GetName() const { return strName; }
 
-private:
+protected:
     // ResorucePtr class is allowed to access the reference count and destroy a resource.
     template <class T>
     friend class ResourcePtr;

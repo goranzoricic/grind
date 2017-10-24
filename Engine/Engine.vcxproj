@@ -151,6 +151,7 @@
     <ClCompile Include="Resources\Resource.cpp" />
     <ClCompile Include="Resources\ResourceManager.cpp" />
     <ClInclude Include="Core\Backend.h" />
+    <ClInclude Include="Geometry\Vertex.h" />
     <ClInclude Include="GfxAPIVulkan\MeshBackendVulkan.h" />
     <ClInclude Include="GfxAPI\MeshBackend.h" />
     <ClInclude Include="Resources\ResourcePtr.hpp">

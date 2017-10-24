@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Resources/Resource.h"
+#include "Geometry/Vertex.h"
 
 class MeshBackend;
 
@@ -13,20 +14,22 @@ public:
     static ResourcePtr<Mesh> Obtain(const std::string &strMeshObjFile);
 
 private:
-    // Default construction is allowed only from the Obtain function.
-    Mesh() = default;
+    // Construction is allowed only from the Obtain function which must supply a name.
+    Mesh(const std::string &strResourceName);
+
 
 public:
-    // Forbid copy construction and assignment, meshes should be created only through 'Obtain' calls,
+    // Forbid default and copy construction and assignment, meshes should be created only through 'Obtain' calls,
     // always allocated on heap and reference counted.
-    Mesh(const std::string &strMeshObjFile) = delete;
+    Mesh() = delete;
+    Mesh(const Mesh &resOther) = delete;
     const Mesh &operator=(const Mesh &resOther) = delete;
 
     // Virtual destructor that does cleanup.
 	virtual ~Mesh();
 
     // Load the mesh from an .obj file.
-	void LoadOBJ(const std::string &strMeshObjFile);
+	void LoadOBJ();
 
 private:
     // Destroy the mesh. 
@@ -34,4 +37,10 @@ private:
 
     // GfxAPI backed object for this mesh.
     MeshBackend *backMesh = { nullptr };
+
+    // Array of vertices belonging to this mesh
+    std::vector<Vertex> avVertices;
+    // Array of vertex indices defining the mesh.
+    std::vector<uint32_t> aiIndices;
+
 };

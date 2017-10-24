@@ -29,9 +29,6 @@
     <ClCompile Include="Resources\ResourceManager.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
-    <ClCompile Include="Resources\ResourcePtr.hpp">
-      <Filter>Resources</Filter>
-    </ClCompile>
     <ClCompile Include="Core\Backend.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -66,6 +63,9 @@
     </Filter>
     <Filter Include="Core">
       <UniqueIdentifier>{5b9cd992-5646-4eb2-904d-33d4ed8e734e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Geometry">
+      <UniqueIdentifier>{03936280-307f-4539-b085-713376e9457b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -114,6 +114,10 @@
     </ClInclude>
     <ClInclude Include="GfxAPIVulkan\MeshBackendVulkan.h">
       <Filter>GfxAPIVulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\ResourcePtr.hpp" />
+    <ClInclude Include="Geometry\Vertex.h">
+      <Filter>Geometry</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

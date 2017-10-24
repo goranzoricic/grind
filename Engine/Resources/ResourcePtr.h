@@ -11,8 +11,8 @@ public:
     // it will be written in the output log, in the line after the error.
     static_assert(std::is_base_of<Resource, T>::value, "Type is not derived from Resource");
 
-    // A resource pointer should never be default constructed. It should a always be give a pointer to an object.
-    ResourcePtr() = delete;
+    // Default constructor initializing to nullptr.
+    ResourcePtr() {};
     // Destroy the pointer, remove a reference form the pointed object.
     ~ResourcePtr();
   

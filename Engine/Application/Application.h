@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <vulkan/vulkan.h>
+#include "Resources/ResourcePtr.h"
+#include "Resources/Mesh.h"
 
 class Application {
 public:
@@ -16,8 +18,13 @@ private:
 
     // Start the graphics API and create the window.
     void InitializeGraphics();
-	// Program's main loop
+    // Obtain resources used by the application.
+    void ObtainResources();
+    // Program's main loop
 	void MainLoop();
 	// Clean up Vulkan API and destroy the application window
 	void Cleanup();
+
+private:
+    ResourcePtr<Mesh> rpMesh = { nullptr };
 };

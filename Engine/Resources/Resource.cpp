@@ -7,6 +7,10 @@ Resource::Resource() {
     
 }
 
+Resource::Resource(const std::string &strResoruceName) {
+    strName = strResoruceName;
+}
+
 Resource::~Resource() {
     assert(ctReferences == 0);
 }
@@ -14,7 +18,7 @@ Resource::~Resource() {
 
 // Add a refrence to the resource.
 void Resource::AddReference() {
-    assert(ctReferences > 0);
+    assert(ctReferences >= 0);
     ++ctReferences;
 }
 

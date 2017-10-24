@@ -20,8 +20,6 @@ ResourceManager* ResourceManager::Instance() {
 
 // Initialize the resource manager.
 ResourceManager::ResourceManager() noexcept {
-    ResourcePtr<Resource> a((Resource*)32);
-    a->GetName();
 }
 
 // Destroy the resource manager.
@@ -48,7 +46,7 @@ Resource *ResourceManager::ObtainResource(const std::string &strResourceName) {
 void ResourceManager::RegisterResource(Resource *presResource) {
     // check that the resource hasn't already been added
     auto resResourceInstance = mapresResources.find(presResource->GetName());
-    assert(resResourceInstance != mapresResources.end());
+    assert(resResourceInstance == mapresResources.end());
 
     // add the resource to the map
     mapresResources[presResource->GetName()] = presResource;

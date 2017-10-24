@@ -15,6 +15,7 @@
 
 #include <GfxAPIVulkan/MeshBackendVulkan.h>
 #include <Resources/Mesh.h>
+#include <Geometry/Vertex.h>
 
 
 // List of validation layers' names that we want to enable.
@@ -1042,11 +1043,11 @@ void GfxAPIVulkan::CreateGraphicsPipeline() {
 	VkPipelineVertexInputStateCreateInfo infoVertexInput = {};
 	infoVertexInput.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	// bind the binding descriptions
-    auto descBinding = Vertex::GetBindingDescription();
+    auto descBinding = GetBindingDescription();
 	infoVertexInput.vertexBindingDescriptionCount = 1;
 	infoVertexInput.pVertexBindingDescriptions = &descBinding;
 	// bind the vertex attributes
-    auto adescAttributes = Vertex::GetAttributeDescriptions();
+    auto adescAttributes = GetAttributeDescriptions();
 	infoVertexInput.vertexAttributeDescriptionCount = static_cast<uint32_t>(adescAttributes.size());
 	infoVertexInput.pVertexAttributeDescriptions = adescAttributes.data();
 
