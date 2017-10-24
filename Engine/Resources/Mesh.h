@@ -31,6 +31,11 @@ public:
     // Load the mesh from an .obj file.
 	void LoadOBJ();
 
+    // Get the mesh'es vertices.
+    const std::vector<Vertex> &GetVertices() { return avVertices;  }
+    // Get the mesh'es indices.
+    const std::vector<uint32_t> &GetIndices() { return aiIndices; }
+
 private:
     // Destroy the mesh. 
     virtual void Destroy();

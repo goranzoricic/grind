@@ -43,13 +43,12 @@ public:
     virtual void Render() = 0;
 
     // Create the backend (API internal) representation for a frontend (external, API agnostic) mesh.
-    virtual class MeshBackend *CreateBackend(const class Mesh *resFrontend) = 0;
+    virtual class MeshBackend *CreateBackend(class Mesh *resFrontend) = 0;
 
 protected:
     // Application window
     std::shared_ptr<Window> _wndWindow;
 
-private:
     // The currently active graphics API implementation. There can be only one.
     static GfxAPI *_apiInstance;
 

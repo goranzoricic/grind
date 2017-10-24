@@ -20,6 +20,6 @@ void GfxAPINull::Render() {
     return;
 }
 
-MeshBackend *GfxAPINull::CreateBackend(const Mesh *resFrontend) {
+MeshBackend *GfxAPINull::CreateBackend(Mesh *resFrontend) {
     return nullptr;
 }

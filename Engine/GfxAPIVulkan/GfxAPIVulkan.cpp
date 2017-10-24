@@ -40,6 +40,11 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL ValidationErrorCallback(
     return VK_FALSE;
 }
 
+// Get the current graphics API instance.
+GfxAPIVulkan *GfxAPIVulkan::Get() {
+    return reinterpret_cast<GfxAPIVulkan *>(_apiInstance);
+}
+
 void GfxAPIVulkan::OnWindowResizedCallback(GLFWwindow* window, int width, int height) {
     if (width == 0 || height == 0) {
         return;
@@ -90,9 +95,9 @@ bool GfxAPIVulkan::Initialize(uint32_t dimWidth, uint32_t dimHeight) {
     // load the example model
     LoadModel();
     // create the vertex buffer
-    CreateVertexBuffers();
+    CreateVertexBuffer(avVertices, vkhVertexBuffer, vkhVertexBufferMemory);
     // create the index buffer
-    CreateIndexBuffers();
+    CreateIndexBuffer(aiIndices, vkhIndexBuffer, vkhIndexBufferMemory);
     // create uniform buffer
     CreateUniformBuffers();
     // create the descriptor pool
@@ -126,9 +131,7 @@ bool GfxAPIVulkan::Destroy() {
     // destroy the descriptor set layout
     vkDestroyDescriptorSetLayout(vkhLogicalDevice, vkhDescriptorSetLayout, nullptr);
     // destroy the uniform buffer
-    vkDestroyBuffer(vkhLogicalDevice, vkhUniformBuffer, nullptr);
-    // release memory used by the uniform buffer
-    vkFreeMemory(vkhLogicalDevice, vkhUniformBufferMemory, nullptr);
+    DestroyBuffer(vkhUniformBuffer, vkhUniformBufferMemory);
 
     // destroy the texture sampler
     vkDestroySampler(vkhLogicalDevice, vkhImageSampler, nullptr);
@@ -140,14 +143,10 @@ bool GfxAPIVulkan::Destroy() {
     vkFreeMemory(vkhLogicalDevice, vkhImageMemory, nullptr);
 
     // destroy the vertex buffer
-    vkDestroyBuffer(vkhLogicalDevice, vkhVertexBuffer, nullptr);
-    // release memory used by the vertex buffer
-    vkFreeMemory(vkhLogicalDevice, vkhVertexBufferMemory, nullptr);
+    DestroyBuffer(vkhVertexBuffer, vkhVertexBufferMemory);
 
-    // destroy the uniform buffer
-    vkDestroyBuffer(vkhLogicalDevice, vkhIndexBuffer, nullptr);
-    // release memory used by the uniform buffer
-    vkFreeMemory(vkhLogicalDevice, vkhIndexBufferMemory, nullptr);
+    // destroy the index buffer
+    DestroyBuffer(vkhIndexBuffer, vkhIndexBufferMemory);
 
     // destroy semaphores
     DestroySemaphores();
@@ -1441,9 +1440,7 @@ void GfxAPIVulkan::CreateTextureImage() {
     CoypBufferToImage(vkhStagingBuffer, vkhImageData, dimWidth, dimHeight);
 
     // destroy the staging buffer
-    vkDestroyBuffer(vkhLogicalDevice, vkhStagingBuffer, nullptr);
-    // free buffer memory
-    vkFreeMemory(vkhLogicalDevice, vkhStagingMemory, nullptr);
+    DestroyBuffer(vkhStagingBuffer, vkhStagingMemory);
 }
 
 
@@ -1762,8 +1759,8 @@ void GfxAPIVulkan::LoadModel() {
 
 
 // Create vertex buffers.
-void GfxAPIVulkan::CreateVertexBuffers() {
-    // create the vertex buffer
+void GfxAPIVulkan::CreateVertexBuffer(const std::vector<Vertex> &avVertices, VkBuffer &vkhVertexBuffer, VkDeviceMemory &vkhVertexBufferMemory) {
+    // create the vertex buffers
     VkDeviceSize ctBufferSize = sizeof(avVertices[0]) * avVertices.size();
 
     // create a staging buffer - it is a source in a memory transfer operation, and is located on the host
@@ -1786,14 +1783,12 @@ void GfxAPIVulkan::CreateVertexBuffers() {
     CopyBuffer(vkhStagingBuffer, vkhVertexBuffer, ctBufferSize);
 
     // destroy the staging buffer
-    vkDestroyBuffer(vkhLogicalDevice, vkhStagingBuffer, nullptr);
-    // free buffer memory
-    vkFreeMemory(vkhLogicalDevice, vkhStagingMemory, nullptr);
+    DestroyBuffer(vkhStagingBuffer, vkhStagingMemory);
 }
 
 
 // Create index buffer.
-void GfxAPIVulkan::CreateIndexBuffers() {
+void GfxAPIVulkan::CreateIndexBuffer(const std::vector<uint32_t> &aiIndices, VkBuffer &vkhIndexBuffer, VkDeviceMemory &vkhIndexBufferMemory) {
     // get the index buffer size
     VkDeviceSize ctBufferSize = sizeof(aiIndices[0]) * aiIndices.size();
 
@@ -1817,9 +1812,7 @@ void GfxAPIVulkan::CreateIndexBuffers() {
     CopyBuffer(vkhStagingBuffer, vkhIndexBuffer, ctBufferSize);
 
     // destroy the staging buffer
-    vkDestroyBuffer(vkhLogicalDevice, vkhStagingBuffer, nullptr);
-    // free buffer memory
-    vkFreeMemory(vkhLogicalDevice, vkhStagingMemory, nullptr);
+    DestroyBuffer(vkhStagingBuffer, vkhStagingMemory);
 }
 
 // Create uniform buffer.
@@ -1828,6 +1821,15 @@ void GfxAPIVulkan::CreateUniformBuffers() {
     VkDeviceSize ctBufferSize = sizeof(UniformBufferObject);
     // create the uniform buffer
     CreateBuffer(ctBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, vkhUniformBuffer, vkhUniformBufferMemory);
+}
+
+
+// Destroy a vulkan buffer and free associated memory.
+void GfxAPIVulkan::DestroyBuffer(VkBuffer vkhBuffer, VkDeviceMemory vkhBufferMemory) {
+    // destroy the uniform buffer
+    vkDestroyBuffer(vkhLogicalDevice, vkhBuffer, nullptr);
+    // release memory used by the uniform buffer
+    vkFreeMemory(vkhLogicalDevice, vkhBufferMemory, nullptr);
 }
 
 
@@ -2187,6 +2189,6 @@ void GfxAPIVulkan::Render() {
 }
 
 
-MeshBackend *GfxAPIVulkan::CreateBackend(const Mesh *resFrontend) {
-    return new MeshBackendVulkan();
+MeshBackend *GfxAPIVulkan::CreateBackend(Mesh *resFrontend) {
+    return new MeshBackendVulkan(resFrontend);
 }

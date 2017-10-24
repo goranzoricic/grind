@@ -20,6 +20,9 @@ private:
     };
 
 public:
+    // Get the current graphics API instance.
+    static GfxAPIVulkan *Get();
+
     static void GfxAPIVulkan::OnWindowResizedCallback(GLFWwindow* window, int width, int height);
 
 private:
@@ -37,7 +40,15 @@ public:
     virtual void Render(); 
 
     // Create the backend (API internal) representation for a frontend (external, API agnostic) mesh.
-    virtual class MeshBackend *CreateBackend(const class Mesh *resFrontend);
+    virtual class MeshBackend *CreateBackend(class Mesh *resFrontend);
+
+    // Create vertex buffer.
+    void CreateVertexBuffer(const std::vector<Vertex> &avVertices, VkBuffer &vkhVertexBuffer, VkDeviceMemory &vkhVertexBufferMemory);
+    // Create index buffer.
+    void CreateIndexBuffer(const std::vector<uint32_t> &aiIndices, VkBuffer &vkhIndexBuffer, VkDeviceMemory &vkhIndexBufferMemory);
+
+    // Destroy a vulkan buffer and free associated memory.
+    void DestroyBuffer(VkBuffer vkhBuffer, VkDeviceMemory vkhBufferMemory);
 
 private:
     // Called when the application's window is resized.
@@ -168,10 +179,6 @@ private:
     // Load the example model.
     void LoadModel();
 
-    // Create vertex buffer.
-    void CreateVertexBuffers();
-    // Create index buffer.
-    void CreateIndexBuffers();
     // Create uniform buffer.
     void CreateUniformBuffers();
 
