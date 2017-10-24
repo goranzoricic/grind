@@ -92,12 +92,6 @@ bool GfxAPIVulkan::Initialize(uint32_t dimWidth, uint32_t dimHeight) {
     // create a sampler for the texture
     CreateImageSampler();
 
-    // load the example model
-    LoadModel();
-    // create the vertex buffer
-    CreateVertexBuffer(avVertices, vkhVertexBuffer, vkhVertexBufferMemory);
-    // create the index buffer
-    CreateIndexBuffer(aiIndices, vkhIndexBuffer, vkhIndexBufferMemory);
     // create uniform buffer
     CreateUniformBuffers();
     // create the descriptor pool
@@ -107,9 +101,6 @@ bool GfxAPIVulkan::Initialize(uint32_t dimWidth, uint32_t dimHeight) {
 
     // allocate command buffers
     CreateCommandBuffers();
-
-    // record the command buffers - NOTE: this is for the simple drawing from the tutorial.
-    RecordCommandBuffers();
 
     // create the semaphores
     CreateSemaphores();
@@ -142,11 +133,8 @@ bool GfxAPIVulkan::Destroy() {
     // release memory used by the texture
     vkFreeMemory(vkhLogicalDevice, vkhImageMemory, nullptr);
 
-    // destroy the vertex buffer
-    DestroyBuffer(vkhVertexBuffer, vkhVertexBufferMemory);
-
-    // destroy the index buffer
-    DestroyBuffer(vkhIndexBuffer, vkhIndexBufferMemory);
+    // destroy all existing backends
+    DestroyBackends();
 
     // destroy semaphores
     DestroySemaphores();
@@ -191,8 +179,6 @@ void GfxAPIVulkan::InitializeSwapChain() {
     CreateFramebuffers();
     // allocate command buffers
     CreateCommandBuffers();
-    // record the command buffers - NOTE: this is for the simple drawing from the tutorial.
-    RecordCommandBuffers();
 }
 
 // Destroy the swap chain.
@@ -1272,7 +1258,7 @@ void GfxAPIVulkan::CreateCommandPool() {
     // bind the graphics queue family to the command pool
     infoCommandPool.queueFamilyIndex = iGraphicsQueueFamily;
     // clear all flags
-    infoCommandPool.flags = 0;
+    infoCommandPool.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
     // create the command pool
     if (vkCreateCommandPool(vkhLogicalDevice, &infoCommandPool, nullptr, &vkhCommandPool) != VK_SUCCESS) {
@@ -1343,18 +1329,19 @@ void GfxAPIVulkan::RecordCommandBuffers() {
         // issue the command to bind the graphics pipeline
         vkCmdBindPipeline(vkhCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkhPipeline);
 
-        // bind the vertex buffer
-        VkBuffer avkhBuffers[] = { vkhVertexBuffer };
-        VkDeviceSize actOffsets[] = { 0 };
-        vkCmdBindVertexBuffers(vkhCommandBuffer, 0, 1, avkhBuffers, actOffsets);
-        // bind the index buffer
-        vkCmdBindIndexBuffer(vkhCommandBuffer, vkhIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
         // bind the descriptor sets
         vkCmdBindDescriptorSets(vkhCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkhPipelineLayout, 0, 1, &vkhDescriptorSet, 0, nullptr);
 
-        // issue the draw command to draw index buffers
-        vkCmdDrawIndexed(vkhCommandBuffer, static_cast<uint32_t>(aiIndices.size()), 1, 0, 0, 0);
+        // bind the vertex buffer
+        for (MeshBackendVulkan *resbMeshBackend : aresbMeshBackends) {
+            VkBuffer avkhBuffers[] = { resbMeshBackend->vkhVertexBuffer };
+            VkDeviceSize actOffsets[] = { 0 };
+            vkCmdBindVertexBuffers(vkhCommandBuffer, 0, 1, avkhBuffers, actOffsets);
+            // bind the index buffer
+            vkCmdBindIndexBuffer(vkhCommandBuffer, resbMeshBackend->vkhIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+            // issue the draw command to draw index buffers
+            vkCmdDrawIndexed(vkhCommandBuffer, resbMeshBackend->GetIndexCount(), 1, 0, 0, 0);
+        }
 
         // issue the command to end the render pass
         vkCmdEndRenderPass(vkhCommandBuffer);
@@ -1714,50 +1701,6 @@ void GfxAPIVulkan::CoypBufferToImage(VkBuffer vkhBuffer, VkImage vkhImage, uint3
 }
 
 
-// Load the example model.
-void GfxAPIVulkan::LoadModel() {
-    // vertex attributes - position, normal, uv, color
-    tinyobj::attrib_t vatrVertexAttributes;
-    // object's meshes, named
-    std::vector<tinyobj::shape_t> ameshMeshes;
-    // materials used by the object
-    std::vector<tinyobj::material_t> amatMaterials;
-    // error string will be stored here, if any
-    std::string strError;
-
-    // load the model from the object file
-    if (!tinyobj::LoadObj(&vatrVertexAttributes, &ameshMeshes, &amatMaterials, &strError, "../sphere.obj")) {
-        throw std::runtime_error("Failed to load the model:  " + strError);
-    }
-
-    // combine all meshes into a single vertex and index buffer
-    // go through all vertices in all meshes in the model
-    for (const auto &meshMesh : ameshMeshes) {
-        for (const auto iVertex : meshMesh.mesh.indices) {
-            // read vertex attributes
-            Vertex vVertex = {};
-            // read the position
-            vVertex.vecPosition = {
-                vatrVertexAttributes.vertices[iVertex.vertex_index * 3 + 0],
-                vatrVertexAttributes.vertices[iVertex.vertex_index * 3 + 1],
-                vatrVertexAttributes.vertices[iVertex.vertex_index * 3 + 2],
-            };
-            // read the UV coordinaets
-            vVertex.vecTexCoords = {
-                vatrVertexAttributes.texcoords[iVertex.texcoord_index * 2 + 0],
-                1.0f - vatrVertexAttributes.texcoords[iVertex.texcoord_index * 2 + 1],
-            };
-            // use constant color, white
-            vVertex.colColor = { 1.0f, 1.0f, 1.0f };
-
-            // store vertex and its index
-            avVertices.push_back(vVertex);
-            aiIndices.push_back(static_cast<uint32_t>(aiIndices.size()));
-        }
-    }
-}
-
-
 // Create vertex buffers.
 void GfxAPIVulkan::CreateVertexBuffer(const std::vector<Vertex> &avVertices, VkBuffer &vkhVertexBuffer, VkDeviceMemory &vkhVertexBufferMemory) {
     // create the vertex buffers
@@ -2108,6 +2051,7 @@ void GfxAPIVulkan::Render() {
     // update model, view and perspective matrices
     UpdateUniformBuffer();
 
+    RecordCommandBuffers();
     // obtain a target image from the swap chain
     // setting max uint64 as the timeout (in nanoseconds) disables the timeout
     // when the image becomes available the syncImageAvailable semaphore will be signaled
@@ -2190,5 +2134,19 @@ void GfxAPIVulkan::Render() {
 
 
 MeshBackend *GfxAPIVulkan::CreateBackend(Mesh *resFrontend) {
-    return new MeshBackendVulkan(resFrontend);
+    MeshBackendVulkan *resbBackend = new MeshBackendVulkan(resFrontend);
+    aresbMeshBackends.push_back(resbBackend);
+    return resbBackend;
+}
+
+void GfxAPIVulkan::RemoveBackend(MeshBackendVulkan *resbBackend) {
+    aresbMeshBackends.erase( std::remove(aresbMeshBackends.begin(), aresbMeshBackends.end(), resbBackend), aresbMeshBackends.end());
+}
+
+// destroy all existing backends
+void GfxAPIVulkan::DestroyBackends() {
+    for (MeshBackendVulkan *resbMeshBackend : aresbMeshBackends) {
+        delete resbMeshBackend;
+    }
+    aresbMeshBackends.clear();
 }

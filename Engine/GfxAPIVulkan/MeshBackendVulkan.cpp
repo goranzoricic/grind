@@ -3,7 +3,6 @@
 
 #include "GfxAPIVulkan/MeshBackendVulkan.h"
 #include "GfxAPIVulkan/GfxAPIVulkan.h"
-#include "Resources/Mesh.h"
 
 
 MeshBackendVulkan::MeshBackendVulkan() {
@@ -22,7 +21,11 @@ MeshBackendVulkan::MeshBackendVulkan(Mesh *resMeshFrontend) {
 MeshBackendVulkan::~MeshBackendVulkan() {
     // destroy backend representation of a mesh
     GfxAPIVulkan::Get()->DestroyBuffer(vkhVertexBuffer, vkhVertexBufferMemory);
+    vkhVertexBuffer = VK_NULL_HANDLE;
+    vkhVertexBufferMemory = VK_NULL_HANDLE;
     GfxAPIVulkan::Get()->DestroyBuffer(vkhIndexBuffer, vkhIndexBufferMemory);
+    vkhIndexBuffer = VK_NULL_HANDLE;
+    vkhIndexBufferMemory = VK_NULL_HANDLE;
 }
 
 

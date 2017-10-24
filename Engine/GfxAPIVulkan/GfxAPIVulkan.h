@@ -41,6 +41,7 @@ public:
 
     // Create the backend (API internal) representation for a frontend (external, API agnostic) mesh.
     virtual class MeshBackend *CreateBackend(class Mesh *resFrontend);
+    void GfxAPIVulkan::RemoveBackend(class MeshBackendVulkan *resbBackend);
 
     // Create vertex buffer.
     void CreateVertexBuffer(const std::vector<Vertex> &avVertices, VkBuffer &vkhVertexBuffer, VkDeviceMemory &vkhVertexBufferMemory);
@@ -176,9 +177,6 @@ private:
     // Copy a buffer to the image.
     void CoypBufferToImage(VkBuffer vkhBuffer, VkImage vkhImage, uint32_t dimWidth, uint32_t dimHeight);
 
-    // Load the example model.
-    void LoadModel();
-
     // Create uniform buffer.
     void CreateUniformBuffers();
 
@@ -198,6 +196,9 @@ private:
     VkCommandBuffer BeginOneTimeCommand();
     // Finish one time command recording.
     void EndOneTimeCommand(VkCommandBuffer vkhCommandBuffer);
+
+    // destroy all existing backends
+    void DestroyBackends();
 
 private:
     // Handle to the vulkan instance.
@@ -303,6 +304,7 @@ private:
     // Descriptor set that will hold the uniform buffer.
     VkDescriptorSet vkhDescriptorSet;
 
+    std::vector<MeshBackendVulkan *> aresbMeshBackends;
 
     // NOTE: refactor this.
     // Describe to the Vulkan API how to handle Vertex data.
@@ -354,7 +356,5 @@ private:
 
         return adescAttributes;
     };
-    std::vector<Vertex> avVertices;
-    std::vector<uint32_t> aiIndices;
 };
 
