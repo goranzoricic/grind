@@ -8,6 +8,11 @@ enum GfxAPIType {
 
 class Window;
 
+class Mesh;
+class MeshBackend;
+class Texture;
+class TextureBackend;
+
 // This is a base class for graphics APIs. It defines the interface that an API needs to provide
 // for the application and the render. The class is abstract, all required methods need to be implemented
 // by concrete classes.
@@ -43,7 +48,13 @@ public:
     virtual void Render() = 0;
 
     // Create the backend (API internal) representation for a frontend (external, API agnostic) mesh.
-    virtual class MeshBackend *CreateBackend(class Mesh *resFrontend) = 0;
+    virtual MeshBackend *CreateBackend(Mesh *resFrontend) = 0;
+    // Destroy and unregister a mesh backend.
+    virtual void DestroyBackend(MeshBackend *resbBackend) = 0;
+    // Create the backend (API internal) representation for a frontend (external, API agnostic) texture.
+    virtual TextureBackend *CreateBackend(Texture *resFrontend, const unsigned char *aubTextureData) = 0;
+    // Destroy and unregister a mesh backend.
+    virtual void DestroyBackend(TextureBackend *resbBackend) = 0;
 
 protected:
     // Application window

@@ -3,7 +3,7 @@
 
 #include "Resources/Mesh.h"
 
-// MeshBackendVulkanis the Vulkan specific representation of a mesh, ready for rendering.
+// MeshBackendVulkan is the Vulkan specific representation of a mesh, ready for rendering.
 class MeshBackendVulkan : public MeshBackend {
 public:
     MeshBackendVulkan();

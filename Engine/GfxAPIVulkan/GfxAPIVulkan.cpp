@@ -16,6 +16,9 @@
 #include <GfxAPIVulkan/MeshBackendVulkan.h>
 #include <Resources/Mesh.h>
 #include <Geometry/Vertex.h>
+#include <Resources/Texture.h>
+
+#include <GfxAPIVulkan/TextureBackendVulkan.h>
 
 
 // List of validation layers' names that we want to enable.
@@ -85,13 +88,6 @@ bool GfxAPIVulkan::Initialize(uint32_t dimWidth, uint32_t dimHeight) {
     // create the framebuffers
     CreateFramebuffers();
 
-    // create a texture
-    CreateTextureImage();
-    // create a texture view
-    CreateTextureImageVeiw();
-    // create a sampler for the texture
-    CreateImageSampler();
-
     // create uniform buffer
     CreateUniformBuffers();
     // create the descriptor pool
@@ -123,15 +119,6 @@ bool GfxAPIVulkan::Destroy() {
     vkDestroyDescriptorSetLayout(vkhLogicalDevice, vkhDescriptorSetLayout, nullptr);
     // destroy the uniform buffer
     DestroyBuffer(vkhUniformBuffer, vkhUniformBufferMemory);
-
-    // destroy the texture sampler
-    vkDestroySampler(vkhLogicalDevice, vkhImageSampler, nullptr);
-    // destroy the image view for the texture
-    vkDestroyImageView(vkhLogicalDevice, vkhImageView, nullptr);
-    // destroy the texture
-    vkDestroyImage(vkhLogicalDevice, vkhImageData, nullptr);
-    // release memory used by the texture
-    vkFreeMemory(vkhLogicalDevice, vkhImageMemory, nullptr);
 
     // destroy all existing backends
     DestroyBackends();
@@ -1390,18 +1377,10 @@ void GfxAPIVulkan::CreateDepthResources() {
 
 
 // Create a texture.
-void GfxAPIVulkan::CreateTextureImage() {
-    // load the image ising the stb library
-    int dimWidth, dimHeight, ctChannels;
-    stbi_uc *imgRawData = stbi_load("../uv_checker.png", &dimWidth, &dimHeight, &ctChannels, STBI_rgb_alpha);
-
-    // if the image failed to load, throw an exception
-    if (!imgRawData) {
-        throw std::runtime_error("Failed to load the texture.");
-    }
-
+void GfxAPIVulkan::CreateTextureImage(const Texture *resTextureFrontend, const unsigned char *aubTextureData, TextureBackendVulkan *resbTextureBackend) {
     // image is four channels per pixel
-    VkDeviceSize ctImageSize = dimWidth * dimHeight * 4;
+    const Texture::TextureDescription &infTextureDescription = resTextureFrontend->GetTextureInfo();
+    VkDeviceSize ctImageSize = infTextureDescription.dimWidth * infTextureDescription.dimHeight * 4;// infTextureDescription.ctChannels;
 
     // create a staging buffer - it is a source in a memory transfer operation, and is located on the host
     VkBuffer vkhStagingBuffer;
@@ -1412,33 +1391,23 @@ void GfxAPIVulkan::CreateTextureImage() {
     void *pMappedMemory;
     vkMapMemory(vkhLogicalDevice, vkhStagingMemory, 0, ctImageSize, 0, &pMappedMemory);
     // copy the buffer to mapped memory
-    memcpy(pMappedMemory, imgRawData, ctImageSize);
+    memcpy(pMappedMemory, aubTextureData, ctImageSize);
     // unmap memory, let the GPU take over
     vkUnmapMemory(vkhLogicalDevice, vkhStagingMemory);
 
-    // release texture memory
-    stbi_image_free(imgRawData);
-
     // create the image
-    CreateImage(dimWidth, dimHeight, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vkhImageData, vkhImageMemory);
+    CreateImage(infTextureDescription.dimWidth, infTextureDescription.dimHeight, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, resbTextureBackend->vkhImageData, resbTextureBackend->vkhImageMemory);
     // prepare the image to receive data from the staging buffer
-    TransitionImageLayout(vkhImageData, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    TransitionImageLayout(resbTextureBackend->vkhImageData, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     // copy data from the staging buffer to the image
-    CoypBufferToImage(vkhStagingBuffer, vkhImageData, dimWidth, dimHeight);
+    CoypBufferToImage(vkhStagingBuffer, resbTextureBackend->vkhImageData, infTextureDescription.dimWidth, infTextureDescription.dimHeight);
 
     // destroy the staging buffer
     DestroyBuffer(vkhStagingBuffer, vkhStagingMemory);
-}
 
+    // create the image view for the texture
+    resbTextureBackend->vkhImageView = CreateImageView(resbTextureBackend->vkhImageData, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT);
 
-// Create a view for the texture.
-void GfxAPIVulkan::CreateTextureImageVeiw() {
-    vkhImageView = CreateImageView(vkhImageData, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT);
-}
-
-
-// Create a sampler for the texture.
-void GfxAPIVulkan::CreateImageSampler() {
     // describe the texture sampler
     VkSamplerCreateInfo infoSampler = {};
     infoSampler.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -1466,9 +1435,22 @@ void GfxAPIVulkan::CreateImageSampler() {
     infoSampler.maxLod = 0.0f;
 
     // create the sampler
-    if (vkCreateSampler(vkhLogicalDevice, &infoSampler, nullptr, &vkhImageSampler) != VK_SUCCESS) {
+    if (vkCreateSampler(vkhLogicalDevice, &infoSampler, nullptr, &resbTextureBackend->vkhImageSampler) != VK_SUCCESS) {
         throw std::runtime_error("Failed to create the texture sampler");
     }
+}
+
+
+// Destroy a texture.
+void GfxAPIVulkan::DestroyTextureImage(TextureBackendVulkan *resbBackend) {
+    // destroy the texture sampler
+    vkDestroySampler(vkhLogicalDevice, resbBackend->vkhImageSampler, nullptr);
+    // destroy the image view for the texture
+    vkDestroyImageView(vkhLogicalDevice, resbBackend->vkhImageView, nullptr);
+    // destroy the texture
+    vkDestroyImage(vkhLogicalDevice, resbBackend->vkhImageData, nullptr);
+    // release memory used by the texture
+    vkFreeMemory(vkhLogicalDevice, resbBackend->vkhImageMemory, nullptr);
 }
 
 
@@ -1823,6 +1805,10 @@ void GfxAPIVulkan::CreateDescriptorSet() {
     if (vkAllocateDescriptorSets(vkhLogicalDevice, &infoDescriptorSetAllocation, &vkhDescriptorSet) != VK_SUCCESS) {
         throw std::runtime_error("Unable to allocate the descriptor set");
     }
+}
+
+// Update the descriptor set.
+void GfxAPIVulkan::UpdateDescriptorSet() {
 
     // use a descriptor to describe the uniform buffer
     VkDescriptorBufferInfo infoUniformBuffer = {};
@@ -1837,9 +1823,10 @@ void GfxAPIVulkan::CreateDescriptorSet() {
     VkDescriptorImageInfo infoImage = {};
     // set the image layout to optimal for reading from a fragment shader
     infoImage.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    const TextureBackendVulkan *resbTexture = aresbTextureBackends[0];
     // set the image view and sampler
-    infoImage.imageView = vkhImageView;
-    infoImage.sampler = vkhImageSampler;
+    infoImage.imageView = resbTexture->vkhImageView;
+    infoImage.sampler = resbTexture->vkhImageSampler;
 
     // describe how to update the descriptor sets
     std::array<VkWriteDescriptorSet, 2> ainfoUpdateDescriptorSets = {};
@@ -2051,6 +2038,10 @@ void GfxAPIVulkan::Render() {
     // update model, view and perspective matrices
     UpdateUniformBuffer();
 
+    // update the descirptor set - uniform and texture bindings
+    UpdateDescriptorSet();
+
+    // record command buffers to draw
     RecordCommandBuffers();
     // obtain a target image from the swap chain
     // setting max uint64 as the timeout (in nanoseconds) disables the timeout
@@ -2133,14 +2124,28 @@ void GfxAPIVulkan::Render() {
 }
 
 
+// Create the backend (API internal) representation for a frontend (external, API agnostic) mesh.
 MeshBackend *GfxAPIVulkan::CreateBackend(Mesh *resFrontend) {
     MeshBackendVulkan *resbBackend = new MeshBackendVulkan(resFrontend);
     aresbMeshBackends.push_back(resbBackend);
     return resbBackend;
 }
 
-void GfxAPIVulkan::RemoveBackend(MeshBackendVulkan *resbBackend) {
-    aresbMeshBackends.erase( std::remove(aresbMeshBackends.begin(), aresbMeshBackends.end(), resbBackend), aresbMeshBackends.end());
+// Destroy and unregister a mesh backend.
+void GfxAPIVulkan::DestroyBackend(MeshBackend *resbBackend) {
+    aresbMeshBackends.erase(std::remove(aresbMeshBackends.begin(), aresbMeshBackends.end(), resbBackend), aresbMeshBackends.end());
+}
+
+// Create the backend (API internal) representation for a frontend (external, API agnostic) texture.
+TextureBackend *GfxAPIVulkan::CreateBackend(Texture *resFrontend, const unsigned char *aubTextureData) {
+    TextureBackendVulkan *resbBackend = new TextureBackendVulkan(resFrontend, aubTextureData);
+    aresbTextureBackends.push_back(resbBackend);
+    return resbBackend;
+}
+
+// Destroy and unregister a mesh backend.
+void GfxAPIVulkan::DestroyBackend(TextureBackend *resbBackend) {
+    aresbTextureBackends.erase( std::remove(aresbTextureBackends.begin(), aresbTextureBackends.end(), resbBackend), aresbTextureBackends.end());
 }
 
 // destroy all existing backends
@@ -2149,4 +2154,9 @@ void GfxAPIVulkan::DestroyBackends() {
         delete resbMeshBackend;
     }
     aresbMeshBackends.clear();
+
+    for (TextureBackendVulkan *resbTextureBackend : aresbTextureBackends) {
+        delete resbTextureBackend;
+    }
+    aresbTextureBackends.clear();
 }

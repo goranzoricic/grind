@@ -43,6 +43,8 @@ void Application::InitializeGraphics() {
 // Obtain resources used by the application.
 void Application::ObtainResources() {
     rpMesh = Mesh::Obtain("..//sphere.obj");
+    rpMesh2 = Mesh::Obtain("..//cube.obj");
+    rpTexture = Texture::Obtain("..//uv_checker.png");
 }
 
 

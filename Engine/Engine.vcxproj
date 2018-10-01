@@ -144,16 +144,21 @@
     <ClCompile Include="GfxAPINull\GfxAPINull.cpp" />
     <ClCompile Include="GfxAPIVulkan\GfxAPIVulkan.cpp" />
     <ClCompile Include="GfxAPIVulkan\MeshBackendVulkan.cpp" />
+    <ClCompile Include="GfxAPIVulkan\TextureBackendVulkan.cpp" />
     <ClCompile Include="GfxAPI\GfxAPI.cpp" />
     <ClCompile Include="GfxAPI\MeshBackend.cpp" />
+    <ClCompile Include="GfxAPI\TextureBackend.cpp" />
     <ClCompile Include="GfxAPI\Window.cpp" />
     <ClCompile Include="Resources\Mesh.cpp" />
     <ClCompile Include="Resources\Resource.cpp" />
     <ClCompile Include="Resources\ResourceManager.cpp" />
+    <ClCompile Include="Resources\Texture.cpp" />
     <ClInclude Include="Core\Backend.h" />
     <ClInclude Include="Geometry\Vertex.h" />
     <ClInclude Include="GfxAPIVulkan\MeshBackendVulkan.h" />
+    <ClInclude Include="GfxAPIVulkan\TextureBackendVulkan.h" />
     <ClInclude Include="GfxAPI\MeshBackend.h" />
+    <ClInclude Include="GfxAPI\TextureBackend.h" />
     <ClInclude Include="Resources\ResourcePtr.hpp">
       <FileType>CppCode</FileType>
     </ClInclude>
@@ -170,6 +175,7 @@
     <ClInclude Include="Resources\Resource.h" />
     <ClInclude Include="Resources\ResourceManager.h" />
     <ClInclude Include="Resources\ResourcePtr.h" />
+    <ClInclude Include="Resources\Texture.h" />
     <ClInclude Include="ThirdParty\stb_image.h" />
     <ClInclude Include="ThirdParty\tiny_obj_loader.h" />
   </ItemGroup>

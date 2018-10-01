@@ -6,6 +6,13 @@
 
 struct GLFWwindow;
 
+class Mesh;
+class MeshBackend;
+class MeshBackendVulkan;
+class Texture;
+class TextureBackend;
+class TextureBackendVulkan;
+
 // Implementation of Vulkan graphics API.
 class GfxAPIVulkan : public GfxAPI {
 private:
@@ -40,13 +47,24 @@ public:
     virtual void Render(); 
 
     // Create the backend (API internal) representation for a frontend (external, API agnostic) mesh.
-    virtual class MeshBackend *CreateBackend(class Mesh *resFrontend);
-    void GfxAPIVulkan::RemoveBackend(class MeshBackendVulkan *resbBackend);
+    virtual MeshBackend *CreateBackend(Mesh *resFrontend);
+    // Destroy and unregister a mesh backend.
+    virtual void DestroyBackend(MeshBackend *resbBackend);
+
+    // Create the backend (API internal) representation for a frontend (external, API agnostic) texture.
+    virtual TextureBackend *CreateBackend(Texture *resFrontend, const unsigned char *aubTextureData);
+    // Destroy and unregister a mesh backend.
+    virtual void DestroyBackend(TextureBackend *resbBackend);
 
     // Create vertex buffer.
     void CreateVertexBuffer(const std::vector<Vertex> &avVertices, VkBuffer &vkhVertexBuffer, VkDeviceMemory &vkhVertexBufferMemory);
     // Create index buffer.
     void CreateIndexBuffer(const std::vector<uint32_t> &aiIndices, VkBuffer &vkhIndexBuffer, VkDeviceMemory &vkhIndexBufferMemory);
+
+    // Create a texture.
+    void CreateTextureImage(const Texture *resTextureFrontend, const unsigned char *aubTextureData, TextureBackendVulkan *resbTextureBackend);
+    // Destroy a texture.
+    void DestroyTextureImage(TextureBackendVulkan *resbBackend);
 
     // Destroy a vulkan buffer and free associated memory.
     void DestroyBuffer(VkBuffer vkhBuffer, VkDeviceMemory vkhBufferMemory);
@@ -154,13 +172,6 @@ private:
     // Create resources needed for depth testing.
     void CreateDepthResources();
 
-    // Create a texture.
-    void CreateTextureImage();
-    // Create a view for the texture.
-    void CreateTextureImageVeiw();
-    // Create a sampler for the texture.
-    void CreateImageSampler();
-
     // Find the format to use for depth.
     VkFormat FindDepthFormat();
     // Find the first supported format from a list of formats.
@@ -184,6 +195,8 @@ private:
     void CreateDescriptorPool();
     // Create the descriptor set.
     void CreateDescriptorSet();
+    // Update the descriptor set.
+    void UpdateDescriptorSet();
 
     // Get the graphics memory type with the desired properties.
     uint32_t FindMemoryType(uint32_t flgTypeFilter, VkMemoryPropertyFlags flgProperties);
@@ -273,15 +286,6 @@ private:
     // Memory used by the vertex buffer.
     VkDeviceMemory vkhVertexBufferMemory;
 
-    // Image holding the texture data.
-    VkImage vkhImageData;
-    // Memory used by the Image buffer.
-    VkDeviceMemory vkhImageMemory;
-    // Image view describing how to access the image.
-    VkImageView vkhImageView;
-    // Sampler used in the fragment shader to read from the texture.
-    VkSampler vkhImageSampler;
-
     // Depth image that fragment depth will be written to and tested with.
     VkImage vkhDepthImageData;
     // Memory used by the Depth image buffer.
@@ -304,7 +308,10 @@ private:
     // Descriptor set that will hold the uniform buffer.
     VkDescriptorSet vkhDescriptorSet;
 
+    // Array of active mesh backends.
     std::vector<MeshBackendVulkan *> aresbMeshBackends;
+    // Array of active texture backends.
+    std::vector<TextureBackendVulkan *> aresbTextureBackends;
 
     // NOTE: refactor this.
     // Describe to the Vulkan API how to handle Vertex data.

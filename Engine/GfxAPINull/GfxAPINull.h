@@ -19,6 +19,12 @@ public:
 
     // Create the backend (API internal) representation for a frontend (external, API agnostic) mesh.
     virtual MeshBackend *CreateBackend(Mesh *resFrontend);
+    // Destroy and unregister a mesh backend.
+    virtual void DestroyBackend(MeshBackend *resbBackend);
+    // Create the backend (API internal) representation for a frontend (external, API agnostic) texture.
+    virtual TextureBackend *CreateBackend(Texture *resFrontend, const unsigned char *aubTextureData);
+    // Destroy and unregister a mesh backend.
+    virtual void DestroyBackend(TextureBackend *resbBackend);
 };
 
 
