@@ -9,9 +9,9 @@ TextureBackendVulkan::TextureBackendVulkan() {
     
 }
 
-// Create Vulkan mesh backend for a loaded frontend mesh.
+// Create Vulkan texture backend for a loaded frontend texture.
 TextureBackendVulkan::TextureBackendVulkan(Texture *resTextureFrontend, const unsigned char *aubTextureData) {
-    // store the frontend mesh
+    // store the frontend texture
     resFrontend = resTextureFrontend;
     // invoke the API to create texture data
     GfxAPIVulkan::Get()->CreateTextureImage(resTextureFrontend, aubTextureData, this);
@@ -19,6 +19,7 @@ TextureBackendVulkan::TextureBackendVulkan(Texture *resTextureFrontend, const un
 
 TextureBackendVulkan::~TextureBackendVulkan() {
     // destroy backend representation of a texture
+    GfxAPIVulkan::Get()->DestroyTextureImage(this);
 }
 
 
