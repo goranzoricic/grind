@@ -4,6 +4,7 @@
 #include <vulkan/vulkan.h>
 #include "Resources/ResourcePtr.h"
 #include "Resources/Mesh.h"
+#include "Resources/Model.h"
 #include "Resources/Texture.h"
 
 class Application {
@@ -29,5 +30,6 @@ private:
 private:
     ResourcePtr<Mesh> rpMesh = { nullptr };
     ResourcePtr<Mesh> rpMesh2 = { nullptr };
+    ResourcePtr<Model> rpModel = { nullptr };
     ResourcePtr<Texture> rpTexture = { nullptr };
 };

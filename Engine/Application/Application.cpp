@@ -44,7 +44,8 @@ void Application::InitializeGraphics() {
 void Application::ObtainResources() {
     rpMesh = Mesh::Obtain("..//sphere.obj");
     rpMesh2 = Mesh::Obtain("..//cube.obj");
-    rpTexture = Texture::Obtain("..//uv_checker.png");
+	rpModel = Model::Obtain("whatevs");
+	rpTexture = Texture::Obtain("..//uv_checker.png");
 }
 
 
