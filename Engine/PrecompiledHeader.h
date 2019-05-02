@@ -11,6 +11,8 @@
 #include <fstream>
 #include <ios>
 #include <chrono>
+#include <unordered_map>
+#include <cstdint>
 
 // force the use of Vulkan's depth range (0 to 1) instead of GLM's default OpenGL range (-1 to 1)
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE

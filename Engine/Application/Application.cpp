@@ -8,12 +8,15 @@
 #include "Config/Options.h"
 #include "GfxAPI/GfxAPI.h"
 #include "GfxAPI/Window.h"
+#include "Resources/ResourcePtr.hpp"
 
 
 // Run the application - initialize, run the main loop, cleanup at the end.
 void Application::Run() {
     // start the graphics API
     InitializeGraphics();
+    // obtain resources
+    ObtainResources();
     // program's main loop
     MainLoop();
     // clean up Vulkan API and destroy the application window
@@ -27,16 +30,21 @@ void Application::InitializeGraphics() {
     const Options &options = Options::Get();
     if (options.GetGfxAPIType() == GfxAPIType::GFX_API_TYPE_VULKAN) {
         apiGfxAPI = GfxAPI::CreateVulkan();
-    }
-    else if (options.GetGfxAPIType() == GfxAPIType::GFX_API_TYPE_NULL) {
+    } else if (options.GetGfxAPIType() == GfxAPIType::GFX_API_TYPE_NULL) {
         apiGfxAPI = GfxAPI::CreateNull();
-    }
-    else {
+    } else {
         throw std::runtime_error("Graphics API type not specified on options");
     }
 
     // initialize the API and let it create the window
     apiGfxAPI->Initialize(options.GetWindowWidth(), options.GetWindowHeight());
+}
+
+// Obtain resources used by the application.
+void Application::ObtainResources() {
+    rpMesh = Mesh::Obtain("..//sphere.obj");
+    rpMesh2 = Mesh::Obtain("..//cube.obj");
+    rpTexture = Texture::Obtain("..//uv_checker.png");
 }
 
 

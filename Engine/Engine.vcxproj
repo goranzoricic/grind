@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{B44FB962-63EE-44EF-A16B-A460354DDC3D}</ProjectGuid>
     <RootNamespace>Engine</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -140,10 +140,28 @@
     <ClCompile Include="..\Main.cpp" />
     <ClCompile Include="Application\Application.cpp" />
     <ClCompile Include="Config\Options.cpp" />
+    <ClCompile Include="Core\Backend.cpp" />
     <ClCompile Include="GfxAPINull\GfxAPINull.cpp" />
     <ClCompile Include="GfxAPIVulkan\GfxAPIVulkan.cpp" />
+    <ClCompile Include="GfxAPIVulkan\MeshBackendVulkan.cpp" />
+    <ClCompile Include="GfxAPIVulkan\TextureBackendVulkan.cpp" />
     <ClCompile Include="GfxAPI\GfxAPI.cpp" />
+    <ClCompile Include="GfxAPI\MeshBackend.cpp" />
+    <ClCompile Include="GfxAPI\TextureBackend.cpp" />
     <ClCompile Include="GfxAPI\Window.cpp" />
+    <ClCompile Include="Resources\Mesh.cpp" />
+    <ClCompile Include="Resources\Resource.cpp" />
+    <ClCompile Include="Resources\ResourceManager.cpp" />
+    <ClCompile Include="Resources\Texture.cpp" />
+    <ClInclude Include="Core\Backend.h" />
+    <ClInclude Include="Geometry\Vertex.h" />
+    <ClInclude Include="GfxAPIVulkan\MeshBackendVulkan.h" />
+    <ClInclude Include="GfxAPIVulkan\TextureBackendVulkan.h" />
+    <ClInclude Include="GfxAPI\MeshBackend.h" />
+    <ClInclude Include="GfxAPI\TextureBackend.h" />
+    <ClInclude Include="Resources\ResourcePtr.hpp">
+      <FileType>CppCode</FileType>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application\Application.h" />
@@ -153,6 +171,11 @@
     <ClInclude Include="GfxAPI\GfxAPI.h" />
     <ClInclude Include="GfxAPI\Window.h" />
     <ClInclude Include="PrecompiledHeader.h" />
+    <ClInclude Include="Resources\Mesh.h" />
+    <ClInclude Include="Resources\Resource.h" />
+    <ClInclude Include="Resources\ResourceManager.h" />
+    <ClInclude Include="Resources\ResourcePtr.h" />
+    <ClInclude Include="Resources\Texture.h" />
     <ClInclude Include="ThirdParty\stb_image.h" />
     <ClInclude Include="ThirdParty\tiny_obj_loader.h" />
   </ItemGroup>
