@@ -42,10 +42,10 @@ void Application::InitializeGraphics() {
 
 // Obtain resources used by the application.
 void Application::ObtainResources() {
-    rpMesh = Mesh::Obtain("..//sphere.obj");
-    rpMesh2 = Mesh::Obtain("..//cube.obj");
-	rpModel = Model::Obtain("whatevs");
-	rpTexture = Texture::Obtain("..//uv_checker.png");
+    rpMesh = Mesh::Obtain("../sphere.obj");
+    rpMesh2 = Mesh::Obtain("../cube.obj");
+	rpModel = Model::Obtain("../model.model");
+	rpTexture = Texture::Obtain("../uv_checker.png");
 }
 
 

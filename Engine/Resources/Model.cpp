@@ -39,10 +39,18 @@ Model::~Model() {
 
 // Load the Model from an .obj file.
 void Model::LoadModel() {
+	std::ifstream sInFile;
+	sInFile.open(strName);
+
+	std::string resourceName;
 	// load the geometry
-	rpGeometry = Mesh::Obtain("..//sphere.obj");
+	sInFile >> resourceName;
+	rpGeometry = Mesh::Obtain(resourceName);
 	// load the texture
-	rpTexture = Texture::Obtain("..//uv_checker.png");
+	sInFile >> resourceName;
+	rpTexture = Texture::Obtain(resourceName);
+
+	sInFile.close();
 }
 
 
