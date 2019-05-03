@@ -1,6 +1,6 @@
 #pragma once
 
-enum GfxAPIType {
+enum class GfxAPIType {
     GFX_API_TYPE_INVALID = -1,
     GFX_API_TYPE_NULL = 0,
     GFX_API_TYPE_VULKAN = 1,

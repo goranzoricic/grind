@@ -50,6 +50,12 @@
     <ClCompile Include="Resources\Model.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\Renderer.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Renderable.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Application">
@@ -78,6 +84,9 @@
     </Filter>
     <Filter Include="Geometry">
       <UniqueIdentifier>{03936280-307f-4539-b085-713376e9457b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer">
+      <UniqueIdentifier>{543b372d-ad3d-42d4-8fee-c1cb59f1f3b7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -142,6 +151,12 @@
     </ClInclude>
     <ClInclude Include="Resources\Model.h">
       <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Renderable.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Renderer.h">
+      <Filter>Renderer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

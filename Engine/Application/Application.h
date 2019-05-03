@@ -6,6 +6,9 @@
 #include "Resources/Mesh.h"
 #include "Resources/Model.h"
 #include "Resources/Texture.h"
+#include "Renderer/Renderable.h"
+
+class Renderable;
 
 class Application {
 public:
@@ -22,7 +25,9 @@ private:
     void InitializeGraphics();
     // Obtain resources used by the application.
     void ObtainResources();
-    // Program's main loop
+	// Create the objects to render.
+	void CreateRenderables();
+	// Program's main loop
 	void MainLoop();
 	// Clean up Vulkan API and destroy the application window
 	void Cleanup();
@@ -32,4 +37,6 @@ private:
     ResourcePtr<Mesh> rpMesh2 = { nullptr };
     ResourcePtr<Model> rpModel = { nullptr };
     ResourcePtr<Texture> rpTexture = { nullptr };
+
+	std::unique_ptr<Renderable> _renderable;
 };

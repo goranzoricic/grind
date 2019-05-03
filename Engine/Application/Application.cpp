@@ -9,15 +9,18 @@
 #include "GfxAPI/GfxAPI.h"
 #include "GfxAPI/Window.h"
 #include "Resources/ResourcePtr.hpp"
-
+#include "Renderer/Renderer.h"
+#include "Renderer/Renderable.h"
 
 // Run the application - initialize, run the main loop, cleanup at the end.
 void Application::Run() {
     // start the graphics API
     InitializeGraphics();
-    // obtain resources
-    ObtainResources();
-    // program's main loop
+	// obtain resources
+	ObtainResources();
+	// create the objects to render
+	CreateRenderables();
+	// program's main loop
     MainLoop();
     // clean up Vulkan API and destroy the application window
     Cleanup();
@@ -38,6 +41,10 @@ void Application::InitializeGraphics() {
 
     // initialize the API and let it create the window
     apiGfxAPI->Initialize(options.GetWindowWidth(), options.GetWindowHeight());
+
+	// create the renderer
+	const auto *renderer = Renderer::Create();
+	assert(renderer != nullptr);
 }
 
 // Obtain resources used by the application.
@@ -46,6 +53,13 @@ void Application::ObtainResources() {
     rpMesh2 = Mesh::Obtain("../cube.obj");
 	rpModel = Model::Obtain("../model.model");
 	rpTexture = Texture::Obtain("../uv_checker.png");
+	rpTexture = Texture::Obtain("../texture.png");
+}
+
+
+// Create the objects to render.
+void Application::CreateRenderables() {
+	_renderable = std::make_unique<Renderable>("../model.model");
 }
 
 

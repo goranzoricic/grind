@@ -153,6 +153,8 @@
     <ClCompile Include="Resources\Model.cpp" />
     <ClCompile Include="Resources\Resource.cpp" />
     <ClCompile Include="Resources\ResourceManager.cpp" />
+    <ClCompile Include="Renderer\Renderer.cpp" />
+    <ClCompile Include="Renderer\Renderable.cpp" />
     <ClCompile Include="Resources\Texture.cpp" />
     <ClInclude Include="Core\Backend.h" />
     <ClInclude Include="Geometry\Vertex.h" />
@@ -178,6 +180,8 @@
     <ClInclude Include="Resources\ResourceManager.h" />
     <ClInclude Include="Resources\ResourcePtr.h" />
     <ClInclude Include="Resources\Texture.h" />
+    <ClInclude Include="Renderer\Renderer.h" />
+    <ClInclude Include="Renderer\Renderable.h" />
     <ClInclude Include="ThirdParty\stb_image.h" />
     <ClInclude Include="ThirdParty\tiny_obj_loader.h" />
   </ItemGroup>
