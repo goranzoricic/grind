@@ -1275,8 +1275,8 @@ void GfxAPIVulkan::CreateCommandBuffers() {
 }
 
 
-// Record the command buffers - NOTE: this is for the simple drawing from the tutorial.
-void GfxAPIVulkan::RecordCommandBuffers() {
+// Record the command buffer, only for the current swapchain image. - NOTE: this is for the simple drawing from the tutorial.
+void GfxAPIVulkan::RecordCommandBuffers(const uint32_t iCommandBuffer) {
     //  describe how the command buffers will be used
     VkCommandBufferBeginInfo infoCommandBufferBegin = {};
     infoCommandBufferBegin.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -2041,13 +2041,14 @@ void GfxAPIVulkan::Render() {
     // update the descirptor set - uniform and texture bindings
     UpdateDescriptorSet();
 
-    // record command buffers to draw
-    RecordCommandBuffers();
     // obtain a target image from the swap chain
     // setting max uint64 as the timeout (in nanoseconds) disables the timeout
     // when the image becomes available the syncImageAvailable semaphore will be signaled
     uint32_t iImage;
     VkResult statusResult  = vkAcquireNextImageKHR(vkhLogicalDevice, vkhSwapChain, std::numeric_limits<uint64_t>::max(), vkhImageAvailableSemaphore, VK_NULL_HANDLE, &iImage);
+
+	// record command buffers to draw
+	RecordCommandBuffers(iImage);
 
     // if acquiring the image failed because the swap chain has become incompatible with the surface
     if (statusResult == VK_ERROR_OUT_OF_DATE_KHR) {

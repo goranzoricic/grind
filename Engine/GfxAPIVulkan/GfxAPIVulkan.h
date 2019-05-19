@@ -161,8 +161,8 @@ private:
     // Create the command buffers.
     void CreateCommandBuffers();
 
-    // Record the command buffers - NOTE: this is for the simple drawing from the tutorial.
-    void RecordCommandBuffers();
+	// Record the command buffer, only for the current swapchain image. - NOTE: this is for the simple drawing from the tutorial.
+	void RecordCommandBuffers(const uint32_t iCommandBuffer);
 
     // Create semaphores for syncing buffer and renderer access.
     void CreateSemaphores();
