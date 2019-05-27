@@ -1302,41 +1302,39 @@ void GfxAPIVulkan::RecordCommandBuffers(const uint32_t iCommandBuffer) {
     infoRenderPassBegin.clearValueCount = static_cast<uint32_t>(acolClearColors.size());
     infoRenderPassBegin.pClearValues = acolClearColors.data();
 
-    // record the same commands in all buffers
-    for (int iCommandBuffer = 0; iCommandBuffer < avkhCommandBuffers.size(); iCommandBuffer++) {
-        VkCommandBuffer &vkhCommandBuffer = avkhCommandBuffers[iCommandBuffer];
-        // begin the command buffer
-        vkBeginCommandBuffer(vkhCommandBuffer, &infoCommandBufferBegin);
+    // record the same commands in the buffer
+    VkCommandBuffer &vkhCommandBuffer = avkhCommandBuffers[iCommandBuffer];
+    // begin the command buffer
+    vkBeginCommandBuffer(vkhCommandBuffer, &infoCommandBufferBegin);
 
-        // bind the frame buffer to the render pass
-        infoRenderPassBegin.framebuffer = avkhFramebuffers[iCommandBuffer];
+    // bind the frame buffer to the render pass
+    infoRenderPassBegin.framebuffer = avkhFramebuffers[iCommandBuffer];
 
-        // issue (record) the command to begin the render pass, with the command executed from the primary buffer
-        vkCmdBeginRenderPass(vkhCommandBuffer, &infoRenderPassBegin, VK_SUBPASS_CONTENTS_INLINE);
-        // issue the command to bind the graphics pipeline
-        vkCmdBindPipeline(vkhCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkhPipeline);
+    // issue (record) the command to begin the render pass, with the command executed from the primary buffer
+    vkCmdBeginRenderPass(vkhCommandBuffer, &infoRenderPassBegin, VK_SUBPASS_CONTENTS_INLINE);
+    // issue the command to bind the graphics pipeline
+    vkCmdBindPipeline(vkhCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkhPipeline);
 
-        // bind the descriptor sets
-        vkCmdBindDescriptorSets(vkhCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkhPipelineLayout, 0, 1, &vkhDescriptorSet, 0, nullptr);
+    // bind the descriptor sets
+    vkCmdBindDescriptorSets(vkhCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkhPipelineLayout, 0, 1, &vkhDescriptorSet, 0, nullptr);
 
-        // bind the vertex buffer
-        for (MeshBackendVulkan *resbMeshBackend : aresbMeshBackends) {
-            VkBuffer avkhBuffers[] = { resbMeshBackend->vkhVertexBuffer };
-            VkDeviceSize actOffsets[] = { 0 };
-            vkCmdBindVertexBuffers(vkhCommandBuffer, 0, 1, avkhBuffers, actOffsets);
-            // bind the index buffer
-            vkCmdBindIndexBuffer(vkhCommandBuffer, resbMeshBackend->vkhIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-            // issue the draw command to draw index buffers
-            vkCmdDrawIndexed(vkhCommandBuffer, resbMeshBackend->GetIndexCount(), 1, 0, 0, 0);
-        }
+    // bind the vertex buffer
+    for (MeshBackendVulkan *resbMeshBackend : aresbMeshBackends) {
+        VkBuffer avkhBuffers[] = { resbMeshBackend->vkhVertexBuffer };
+        VkDeviceSize actOffsets[] = { 0 };
+        vkCmdBindVertexBuffers(vkhCommandBuffer, 0, 1, avkhBuffers, actOffsets);
+        // bind the index buffer
+        vkCmdBindIndexBuffer(vkhCommandBuffer, resbMeshBackend->vkhIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        // issue the draw command to draw index buffers
+        vkCmdDrawIndexed(vkhCommandBuffer, resbMeshBackend->GetIndexCount(), 1, 0, 0, 0);
+    }
 
-        // issue the command to end the render pass
-        vkCmdEndRenderPass(vkhCommandBuffer);
+    // issue the command to end the render pass
+    vkCmdEndRenderPass(vkhCommandBuffer);
 
-        // end the command buffer
-        if (vkEndCommandBuffer(vkhCommandBuffer) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to record command buffer");
-        }
+    // end the command buffer
+    if (vkEndCommandBuffer(vkhCommandBuffer) != VK_SUCCESS) {
+        throw std::runtime_error("Failed to record command buffer");
     }
 }
 
