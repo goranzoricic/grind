@@ -52,8 +52,8 @@ void Application::ObtainResources() {
     rpMesh = Mesh::Obtain("../sphere.obj");
     rpMesh2 = Mesh::Obtain("../cube.obj");
 	rpModel = Model::Obtain("../model.model");
+	rpShader = Shader::Obtain("../shader.shader");
 	rpTexture = Texture::Obtain("../uv_checker.png");
-	rpTexture = Texture::Obtain("../texture.png");
 }
 
 
@@ -76,10 +76,23 @@ void Application::MainLoop() {
 	}
 }
 
+// Clear all resource pointers, to unload resources.
+void Application::ReleaseResources()
+{
+	_renderable = nullptr;
+	rpTexture = nullptr;
+	rpShader = nullptr;
+	rpModel = nullptr;
+	rpMesh2 = nullptr;
+	rpMesh = nullptr;
+}
 
 // Clean up Vulkan API and destroy the application window
 void Application::Cleanup() {
-    GfxAPI::Get()->Destroy();
+	// clear all resource pointers, to have a gracefull exit
+	ReleaseResources();
+	// destroy the graphics API
+	GfxAPI::Get()->Destroy();
 }
 
 

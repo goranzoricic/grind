@@ -57,5 +57,6 @@ void Texture::LoadPNG() {
 
 // Destroy the Texture. 
 void Texture::Destroy() {
-
+	// destroy the backend representation of this texture
+	GfxAPI::Get()->DestroyBackend(backTexture);
 }

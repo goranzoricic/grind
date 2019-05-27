@@ -144,9 +144,11 @@
     <ClCompile Include="GfxAPINull\GfxAPINull.cpp" />
     <ClCompile Include="GfxAPIVulkan\GfxAPIVulkan.cpp" />
     <ClCompile Include="GfxAPIVulkan\MeshBackendVulkan.cpp" />
+    <ClCompile Include="GfxAPIVulkan\ShaderBackendVulkan.cpp" />
     <ClCompile Include="GfxAPIVulkan\TextureBackendVulkan.cpp" />
     <ClCompile Include="GfxAPI\GfxAPI.cpp" />
     <ClCompile Include="GfxAPI\MeshBackend.cpp" />
+    <ClCompile Include="GfxAPI\ShaderBackend.cpp" />
     <ClCompile Include="GfxAPI\TextureBackend.cpp" />
     <ClCompile Include="GfxAPI\Window.cpp" />
     <ClCompile Include="Resources\Mesh.cpp" />
@@ -155,12 +157,15 @@
     <ClCompile Include="Resources\ResourceManager.cpp" />
     <ClCompile Include="Renderer\Renderer.cpp" />
     <ClCompile Include="Renderer\Renderable.cpp" />
+    <ClCompile Include="Resources\Shader.cpp" />
     <ClCompile Include="Resources\Texture.cpp" />
     <ClInclude Include="Core\Backend.h" />
     <ClInclude Include="Geometry\Vertex.h" />
     <ClInclude Include="GfxAPIVulkan\MeshBackendVulkan.h" />
+    <ClInclude Include="GfxAPIVulkan\ShaderBackendVulkan.h" />
     <ClInclude Include="GfxAPIVulkan\TextureBackendVulkan.h" />
     <ClInclude Include="GfxAPI\MeshBackend.h" />
+    <ClInclude Include="GfxAPI\ShaderBackend.h" />
     <ClInclude Include="GfxAPI\TextureBackend.h" />
     <ClInclude Include="Resources\Model.h" />
     <ClInclude Include="Resources\ResourcePtr.hpp">
@@ -179,6 +184,7 @@
     <ClInclude Include="Resources\Resource.h" />
     <ClInclude Include="Resources\ResourceManager.h" />
     <ClInclude Include="Resources\ResourcePtr.h" />
+    <ClInclude Include="Resources\Shader.h" />
     <ClInclude Include="Resources\Texture.h" />
     <ClInclude Include="Renderer\Renderer.h" />
     <ClInclude Include="Renderer\Renderable.h" />

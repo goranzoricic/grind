@@ -24,7 +24,9 @@ public:
     const ResourcePtr &operator = (const ResourcePtr &presOther);
     // Assignment operator, same properties as the default constructor.
     const ResourcePtr &operator = (T * const presOther);
-    // Don't allow to use a Resoruce to be dereferenced.
+	// Assignment operator for the nullptr.
+	const ResourcePtr &operator = (std::nullptr_t const pNull);
+	// Don't allow to use a Resoruce to be dereferenced.
     T &operator*() = delete;
     // Referencing operator.
     T *operator->();

@@ -13,11 +13,13 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "../ThirdParty/tiny_obj_loader.h"
 
-#include <GfxAPIVulkan/MeshBackendVulkan.h>
-#include <Resources/Mesh.h>
 #include <Geometry/Vertex.h>
+#include <Resources/Mesh.h>
+#include <Resources/Shader.h>
 #include <Resources/Texture.h>
 
+#include <GfxAPIVulkan/MeshBackendVulkan.h>
+#include <GfxAPIVulkan/ShaderBackendVulkan.h>
 #include <GfxAPIVulkan/TextureBackendVulkan.h>
 
 
@@ -79,7 +81,7 @@ bool GfxAPIVulkan::Initialize(uint32_t dimWidth, uint32_t dimHeight) {
     // create descriptor set layout
     CreateDescriptorSetLayout();
     // create the graphics pipeline
-    CreateGraphicsPipeline();
+    //CreateGraphicsPipeline();
     // create the command pool
     CreateCommandPool();
 
@@ -159,7 +161,7 @@ void GfxAPIVulkan::InitializeSwapChain() {
     // create the render pass
     CreateRenderPass();
     // create the graphics pipeline
-    CreateGraphicsPipeline();
+    //CreateGraphicsPipeline();
     // create resources needed for depth testing
     CreateDepthResources();
     // create the framebuffers
@@ -184,10 +186,8 @@ void GfxAPIVulkan::DestroySwapChain() {
     // destroy the framebuffers
     DestroyFramebuffers();
 
-    // destroy the pipeline
-    vkDestroyPipeline(vkhLogicalDevice, vkhPipeline, nullptr);
-	// destroy the pipeline layout
-	vkDestroyPipelineLayout(vkhLogicalDevice, vkhPipelineLayout, nullptr);
+	// destroy the pipeline and layout
+	//DestroyGraphicsPipeline();
 	// destroy the render pass
 	vkDestroyRenderPass(vkhLogicalDevice, vkhRenderPass, nullptr);
 	// destroy the image views
@@ -984,10 +984,10 @@ void GfxAPIVulkan::CreateDescriptorSetLayout() {
 }
 
 // Create the graphics pipeline.
-void GfxAPIVulkan::CreateGraphicsPipeline() {
+void GfxAPIVulkan::CreateGraphicsPipeline(const std::string &strVertexProgram, const std::string &strPixelProgram, ShaderBackendVulkan *resbShaderBackend) {
 
     // load the vertex module
-    VkShaderModule modVert = CreateShaderModule("../vert.spv");
+    VkShaderModule modVert = CreateShaderModule(strVertexProgram);
     // describe the vertex shader stage
     VkPipelineShaderStageCreateInfo infoShaderStageVert = {};
     infoShaderStageVert.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -998,7 +998,7 @@ void GfxAPIVulkan::CreateGraphicsPipeline() {
     infoShaderStageVert.module = modVert;
 
     // load the fragment module
-    VkShaderModule modFrag = CreateShaderModule("../frag.spv");
+    VkShaderModule modFrag = CreateShaderModule(strPixelProgram);
     // describe the fragment shader stage
     VkPipelineShaderStageCreateInfo infoShaderStageFrag = {};
     infoShaderStageFrag.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -1137,7 +1137,7 @@ void GfxAPIVulkan::CreateGraphicsPipeline() {
 	infoPipelineLayout.pPushConstantRanges = 0;
 
 	// create the pipeline layout
-	if (vkCreatePipelineLayout(vkhLogicalDevice, &infoPipelineLayout, nullptr, &vkhPipelineLayout) != VK_SUCCESS) {
+	if (vkCreatePipelineLayout(vkhLogicalDevice, &infoPipelineLayout, nullptr, &(resbShaderBackend->vkhPipelineLayout)) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create the pipeline layout!");
 	}
 
@@ -1174,7 +1174,7 @@ void GfxAPIVulkan::CreateGraphicsPipeline() {
     infoGraphicsPipeline.pColorBlendState = &infoColorBlendState;
     infoGraphicsPipeline.pDynamicState = nullptr;
     // set the pipeline layout
-    infoGraphicsPipeline.layout = vkhPipelineLayout;
+    infoGraphicsPipeline.layout = resbShaderBackend->vkhPipelineLayout;
     // set up the render pass
     infoGraphicsPipeline.renderPass = vkhRenderPass;
     infoGraphicsPipeline.subpass = 0;
@@ -1183,13 +1183,23 @@ void GfxAPIVulkan::CreateGraphicsPipeline() {
     infoGraphicsPipeline.basePipelineIndex = -1;
 
     // create the graphics pipeline
-    if (vkCreateGraphicsPipelines(vkhLogicalDevice, VK_NULL_HANDLE, 1, &infoGraphicsPipeline, nullptr, &vkhPipeline) != VK_SUCCESS) {
+    if (vkCreateGraphicsPipelines(vkhLogicalDevice, VK_NULL_HANDLE, 1, &infoGraphicsPipeline, nullptr, &(resbShaderBackend->vkhPipeline)) != VK_SUCCESS) {
         throw std::runtime_error("Failed to create the graphics pipeline");
     }
 
     // destroy shader modules - they are a part of the graphics pipeline
     vkDestroyShaderModule(vkhLogicalDevice, modFrag, nullptr);
     vkDestroyShaderModule(vkhLogicalDevice, modVert, nullptr);
+}
+
+
+// Destroy the graphics pipeline.
+void GfxAPIVulkan::DestroyGraphicsPipeline(ShaderBackendVulkan *resbBackend)
+{
+	// destroy the pipeline
+	vkDestroyPipeline(vkhLogicalDevice, resbBackend->vkhPipeline, nullptr);
+	// destroy the pipeline layout
+	vkDestroyPipelineLayout(vkhLogicalDevice, resbBackend->vkhPipelineLayout, nullptr);
 }
 
 
@@ -1313,10 +1323,10 @@ void GfxAPIVulkan::RecordCommandBuffers(const uint32_t iCommandBuffer) {
     // issue (record) the command to begin the render pass, with the command executed from the primary buffer
     vkCmdBeginRenderPass(vkhCommandBuffer, &infoRenderPassBegin, VK_SUBPASS_CONTENTS_INLINE);
     // issue the command to bind the graphics pipeline
-    vkCmdBindPipeline(vkhCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkhPipeline);
+    vkCmdBindPipeline(vkhCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, aresbShaderBackends[0]->vkhPipeline);
 
     // bind the descriptor sets
-    vkCmdBindDescriptorSets(vkhCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkhPipelineLayout, 0, 1, &vkhDescriptorSet, 0, nullptr);
+    vkCmdBindDescriptorSets(vkhCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, aresbShaderBackends[0]->vkhPipelineLayout, 0, 1, &vkhDescriptorSet, 0, nullptr);
 
     // bind the vertex buffer
     for (MeshBackendVulkan *resbMeshBackend : aresbMeshBackends) {
@@ -2133,7 +2143,24 @@ MeshBackend *GfxAPIVulkan::CreateBackend(Mesh *resFrontend) {
 // Destroy and unregister a mesh backend.
 void GfxAPIVulkan::DestroyBackend(MeshBackend *resbBackend) {
     aresbMeshBackends.erase(std::remove(aresbMeshBackends.begin(), aresbMeshBackends.end(), resbBackend), aresbMeshBackends.end());
+	delete resbBackend;
 }
+
+
+// Create the backend (API internal) representation for a frontend (external, API agnostic) shader.
+ShaderBackend *GfxAPIVulkan::CreateBackend(Shader* resFrontend, const std::string &strVertexProgram, const std::string &strPixelProgram) {
+	ShaderBackendVulkan *resbBackend = new ShaderBackendVulkan(resFrontend, strVertexProgram, strPixelProgram);
+	aresbShaderBackends.push_back(resbBackend);
+	return resbBackend;
+}
+
+
+// Destroy and unregister a shader backend.
+void GfxAPIVulkan::DestroyBackend(ShaderBackend *resbBackend) {
+	aresbShaderBackends.erase(std::remove(aresbShaderBackends.begin(), aresbShaderBackends.end(), resbBackend), aresbShaderBackends.end());
+	delete resbBackend;
+}
+
 
 // Create the backend (API internal) representation for a frontend (external, API agnostic) texture.
 TextureBackend *GfxAPIVulkan::CreateBackend(Texture *resFrontend, const unsigned char *aubTextureData) {
@@ -2145,6 +2172,7 @@ TextureBackend *GfxAPIVulkan::CreateBackend(Texture *resFrontend, const unsigned
 // Destroy and unregister a mesh backend.
 void GfxAPIVulkan::DestroyBackend(TextureBackend *resbBackend) {
     aresbTextureBackends.erase( std::remove(aresbTextureBackends.begin(), aresbTextureBackends.end(), resbBackend), aresbTextureBackends.end());
+	delete resbBackend;
 }
 
 // destroy all existing backends
@@ -2154,7 +2182,12 @@ void GfxAPIVulkan::DestroyBackends() {
     }
     aresbMeshBackends.clear();
 
-    for (TextureBackendVulkan *resbTextureBackend : aresbTextureBackends) {
+	for (ShaderBackendVulkan *resbShaderBackend : aresbShaderBackends) {
+		delete resbShaderBackend;
+	}
+	aresbShaderBackends.clear();
+	
+	for (TextureBackendVulkan *resbTextureBackend : aresbTextureBackends) {
         delete resbTextureBackend;
     }
     aresbTextureBackends.clear();

@@ -86,5 +86,6 @@ void Mesh::LoadOBJ() {
 
 // Destroy the mesh. 
 void Mesh::Destroy() {
-
+	// destroy the backend representation of this mesh
+	GfxAPI::Get()->DestroyBackend(backMesh);
 }

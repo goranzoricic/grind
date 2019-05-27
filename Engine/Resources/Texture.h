@@ -37,10 +37,8 @@ public:
 
     // Load the Texture from a .png file.
 	void LoadPNG();
-    // Release loaded data after it has been .
-    void ReleaseData();
 
-    // Get the Texture's information.
+	// Get the Texture's information.
     const TextureDescription &GetTextureInfo() const { return infTextureDescription; }
 
 private:

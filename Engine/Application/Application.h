@@ -5,6 +5,7 @@
 #include "Resources/ResourcePtr.h"
 #include "Resources/Mesh.h"
 #include "Resources/Model.h"
+#include "Resources/Shader.h"
 #include "Resources/Texture.h"
 #include "Renderer/Renderable.h"
 
@@ -23,20 +24,24 @@ private:
 
     // Start the graphics API and create the window.
     void InitializeGraphics();
-    // Obtain resources used by the application.
-    void ObtainResources();
+
+private:
+	// Obtain resources used by the application.
+	void ObtainResources();
 	// Create the objects to render.
 	void CreateRenderables();
 	// Program's main loop
 	void MainLoop();
-	// Clean up Vulkan API and destroy the application window
+	// Clear all resource pointers, to unload resources.
+	void ReleaseResources();
+	// Clean up Vulkan API and destroy the application window.
 	void Cleanup();
 
-private:
-    ResourcePtr<Mesh> rpMesh = { nullptr };
+	ResourcePtr<Mesh> rpMesh = { nullptr };
     ResourcePtr<Mesh> rpMesh2 = { nullptr };
     ResourcePtr<Model> rpModel = { nullptr };
-    ResourcePtr<Texture> rpTexture = { nullptr };
+	ResourcePtr<Shader> rpShader = { nullptr };
+	ResourcePtr<Texture> rpTexture = { nullptr };
 
 	std::unique_ptr<Renderable> _renderable;
 };

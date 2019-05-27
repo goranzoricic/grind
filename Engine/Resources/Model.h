@@ -25,7 +25,7 @@ public:
     // Virtual destructor that does cleanup.
 	virtual ~Model();
 
-    // Load the Model from an .obj file.
+    // Load the model from a .model file.
 	void LoadModel();
 
 private:

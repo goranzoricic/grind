@@ -9,6 +9,9 @@ struct GLFWwindow;
 class Mesh;
 class MeshBackend;
 class MeshBackendVulkan;
+class Shader;
+class ShaderBackend;
+class ShaderBackendVulkan;
 class Texture;
 class TextureBackend;
 class TextureBackendVulkan;
@@ -51,12 +54,18 @@ public:
     // Destroy and unregister a mesh backend.
     virtual void DestroyBackend(MeshBackend *resbBackend);
 
-    // Create the backend (API internal) representation for a frontend (external, API agnostic) texture.
+	// Create the backend (API internal) representation for a frontend (external, API agnostic) shader.
+	virtual ShaderBackend *CreateBackend(Shader* resFrontend, const std::string &strVertexProgram, const std::string &strPixelProgram);
+	// Destroy and unregister a shader backend.
+	virtual void DestroyBackend(ShaderBackend *resbBackend);
+	
+	// Create the backend (API internal) representation for a frontend (external, API agnostic) texture.
     virtual TextureBackend *CreateBackend(Texture *resFrontend, const unsigned char *aubTextureData);
     // Destroy and unregister a mesh backend.
     virtual void DestroyBackend(TextureBackend *resbBackend);
 
-    // Create vertex buffer.
+
+	// Create vertex buffer.
     void CreateVertexBuffer(const std::vector<Vertex> &avVertices, VkBuffer &vkhVertexBuffer, VkDeviceMemory &vkhVertexBufferMemory);
     // Create index buffer.
     void CreateIndexBuffer(const std::vector<uint32_t> &aiIndices, VkBuffer &vkhIndexBuffer, VkDeviceMemory &vkhIndexBufferMemory);
@@ -65,6 +74,11 @@ public:
     void CreateTextureImage(const Texture *resTextureFrontend, const unsigned char *aubTextureData, TextureBackendVulkan *resbTextureBackend);
     // Destroy a texture.
     void DestroyTextureImage(TextureBackendVulkan *resbBackend);
+
+	// Create the graphics pipeline.
+	void CreateGraphicsPipeline(const std::string &strVertexProgram, const std::string &strPixelProgram, ShaderBackendVulkan *resbShaderBackend);
+	// Destroy the graphics pipeline.
+	void DestroyGraphicsPipeline(ShaderBackendVulkan *resbShaderBackend);
 
     // Destroy a vulkan buffer and free associated memory.
     void DestroyBuffer(VkBuffer vkhBuffer, VkDeviceMemory vkhBufferMemory);
@@ -148,8 +162,6 @@ private:
 	void CreateRenderPass();
     // Create descriptor sets - used to bind uniforms to shaders.
     void CreateDescriptorSetLayout();
-	// Create the graphics pipeline.
-	void CreateGraphicsPipeline();
 
     // Create the framebuffers.
     void CreateFramebuffers();
@@ -263,11 +275,6 @@ private:
     // Descriptor set layout for uniform buffers.
     VkDescriptorSetLayout vkhDescriptorSetLayout;
 
-    // Layout of the graphics pipeline.
-	VkPipelineLayout vkhPipelineLayout;
-    // Graphics pipeline.
-    VkPipeline vkhPipeline;
-
     // Framebuffers used to draw.
     std::vector<VkFramebuffer> avkhFramebuffers;
 
@@ -310,7 +317,9 @@ private:
 
     // Array of active mesh backends.
     std::vector<MeshBackendVulkan *> aresbMeshBackends;
-    // Array of active texture backends.
+	// Array of active shader backends.
+	std::vector<ShaderBackendVulkan *> aresbShaderBackends;
+	// Array of active texture backends.
     std::vector<TextureBackendVulkan *> aresbTextureBackends;
 
     // NOTE: refactor this.

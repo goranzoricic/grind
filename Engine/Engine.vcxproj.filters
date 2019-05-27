@@ -56,6 +56,15 @@
     <ClCompile Include="Renderer\Renderable.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Resources\Shader.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="GfxAPI\ShaderBackend.cpp">
+      <Filter>GfxAPI</Filter>
+    </ClCompile>
+    <ClCompile Include="GfxAPIVulkan\ShaderBackendVulkan.cpp">
+      <Filter>GfxAPIVulkan</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Application">
@@ -136,7 +145,6 @@
     <ClInclude Include="GfxAPIVulkan\MeshBackendVulkan.h">
       <Filter>GfxAPIVulkan</Filter>
     </ClInclude>
-    <ClInclude Include="Resources\ResourcePtr.hpp" />
     <ClInclude Include="Geometry\Vertex.h">
       <Filter>Geometry</Filter>
     </ClInclude>
@@ -157,6 +165,18 @@
     </ClInclude>
     <ClInclude Include="Renderer\Renderer.h">
       <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\Shader.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="GfxAPI\ShaderBackend.h">
+      <Filter>GfxAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="GfxAPIVulkan\ShaderBackendVulkan.h">
+      <Filter>GfxAPIVulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\ResourcePtr.hpp">
+      <Filter>Resources</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

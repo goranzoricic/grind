@@ -10,6 +10,8 @@ class Window;
 
 class Mesh;
 class MeshBackend;
+class Shader;
+class ShaderBackend;
 class Texture;
 class TextureBackend;
 
@@ -51,7 +53,11 @@ public:
     virtual MeshBackend *CreateBackend(Mesh *resFrontend) = 0;
     // Destroy and unregister a mesh backend.
     virtual void DestroyBackend(MeshBackend *resbBackend) = 0;
-    // Create the backend (API internal) representation for a frontend (external, API agnostic) texture.
+	// Create the backend (API internal) representation for a frontend (external, API agnostic) shader.
+	virtual ShaderBackend *CreateBackend(Shader* resFrontend, const std::string &strVertexProgram, const std::string &strPixelProgram) = 0;
+	// Destroy and unregister a shader backend.
+	virtual void DestroyBackend(ShaderBackend *resbBackend) = 0;
+	// Create the backend (API internal) representation for a frontend (external, API agnostic) texture.
     virtual TextureBackend *CreateBackend(Texture *resFrontend, const unsigned char *aubTextureData) = 0;
     // Destroy and unregister a mesh backend.
     virtual void DestroyBackend(TextureBackend *resbBackend) = 0;
