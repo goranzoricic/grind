@@ -38,5 +38,5 @@ void Renderer::removeRenderable(const std::shared_ptr<Renderable> &renderable) {
 
 // Render a frame.
 void Renderer::Render() {
-
+	GfxAPI::Get()->Render();
 }

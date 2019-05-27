@@ -72,7 +72,7 @@ void Application::MainLoop() {
     std::shared_ptr<Window> wndWindow = apiGfx->GetWindow();
 	while (!wndWindow->ShouldClose()) {
         wndWindow->ProcessMessages();
-        apiGfx->Render();
+		Renderer::Get()->Render();
 	}
 }
 
