@@ -59,14 +59,18 @@ void Application::ObtainResources() {
 
 // Create the objects to render.
 void Application::CreateRenderables() {
-	_renderable = std::make_shared<Renderable>("../model.model");
-	Renderer::Get()->addRenderable(_renderable);
+	_renderableSphere = std::make_shared<Renderable>("../model.model");
+	Renderer::Get()->addRenderable(_renderableSphere);
+	_renderableCube = std::make_shared<Renderable>("../model2.model");
+	Renderer::Get()->addRenderable(_renderableCube);
 }
 
 // Destroy all renderables.
 void Application::DestroyRenderables() {
-	Renderer::Get()->removeRenderable(_renderable);
-	_renderable == nullptr;
+	Renderer::Get()->removeRenderable(_renderableSphere);
+	_renderableSphere == nullptr;
+	Renderer::Get()->removeRenderable(_renderableCube);
+	_renderableCube == nullptr;
 }
 
 // Program's main loop
@@ -85,7 +89,6 @@ void Application::MainLoop() {
 // Clear all resource pointers, to unload resources.
 void Application::ReleaseResources()
 {
-	_renderable = nullptr;
 	rpTexture = nullptr;
 	rpShader = nullptr;
 	rpModel = nullptr;

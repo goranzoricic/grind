@@ -45,5 +45,6 @@ private:
 	ResourcePtr<Shader> rpShader = { nullptr };
 	ResourcePtr<Texture> rpTexture = { nullptr };
 
-	std::shared_ptr<Renderable> _renderable;
+	std::shared_ptr<Renderable> _renderableSphere;
+	std::shared_ptr<Renderable> _renderableCube;
 };
