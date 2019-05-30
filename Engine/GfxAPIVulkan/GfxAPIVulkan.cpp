@@ -1,4 +1,5 @@
 #include "PrecompiledHeader.h"
+#include "PrecompiledHeader.h"
 #include "GfxAPIVulkan.h"
 
 #define GLFW_INCLUDE_VULKAN
@@ -78,10 +79,6 @@ bool GfxAPIVulkan::Initialize(uint32_t dimWidth, uint32_t dimHeight) {
     CreateImageViews();
     // create the render pass
     CreateRenderPass();
-    // create descriptor set layout
-    CreateDescriptorSetLayout();
-    // create the graphics pipeline
-    //CreateGraphicsPipeline();
     // create the command pool
     CreateCommandPool();
 
@@ -92,10 +89,6 @@ bool GfxAPIVulkan::Initialize(uint32_t dimWidth, uint32_t dimHeight) {
 
     // create uniform buffer
     CreateUniformBuffers();
-    // create the descriptor pool
-    CreateDescriptorPool();
-    // create the descriptor set
-    CreateDescriptorSet();
 
     // allocate command buffers
     CreateCommandBuffers();
@@ -115,10 +108,6 @@ bool GfxAPIVulkan::Destroy() {
     // destroy the swap chain
     DestroySwapChain();
     
-    // destroy the desctiptor pool
-    vkDestroyDescriptorPool(vkhLogicalDevice, vkhDescriptorPool, nullptr);
-    // destroy the descriptor set layout
-    vkDestroyDescriptorSetLayout(vkhLogicalDevice, vkhDescriptorSetLayout, nullptr);
     // destroy the uniform buffer
     DestroyBuffer(vkhUniformBuffer, vkhUniformBufferMemory);
 
@@ -160,8 +149,6 @@ void GfxAPIVulkan::InitializeSwapChain() {
     CreateImageViews();
     // create the render pass
     CreateRenderPass();
-    // create the graphics pipeline
-    //CreateGraphicsPipeline();
     // create resources needed for depth testing
     CreateDepthResources();
     // create the framebuffers
@@ -186,8 +173,6 @@ void GfxAPIVulkan::DestroySwapChain() {
     // destroy the framebuffers
     DestroyFramebuffers();
 
-	// destroy the pipeline and layout
-	//DestroyGraphicsPipeline();
 	// destroy the render pass
 	vkDestroyRenderPass(vkhLogicalDevice, vkhRenderPass, nullptr);
 	// destroy the image views
@@ -941,7 +926,7 @@ void GfxAPIVulkan::CreateRenderPass() {
 
 
 // Create descriptor sets - used to bind uniforms to shaders.
-void GfxAPIVulkan::CreateDescriptorSetLayout() {
+void GfxAPIVulkan::CreateDescriptorSetLayout(ShaderBackendVulkan *resbShaderBackend) {
     // describe the descriptor set binding for the uniform buffer
     VkDescriptorSetLayoutBinding infoUniformBinding = {};
     // set the binding index (defined in the shader)
@@ -965,8 +950,7 @@ void GfxAPIVulkan::CreateDescriptorSetLayout() {
     infoSamplerBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
     // no immutable samplers
     infoSamplerBinding.pImmutableSamplers = nullptr;
-
-
+	
     // describe the descriptor set layout
     VkDescriptorSetLayoutCreateInfo infoDescriptorSetLayout = {};
     infoDescriptorSetLayout.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -978,10 +962,17 @@ void GfxAPIVulkan::CreateDescriptorSetLayout() {
     infoDescriptorSetLayout.pBindings = ainfoBindings.data();
 
     // create the layout
-    if (vkCreateDescriptorSetLayout(vkhLogicalDevice, &infoDescriptorSetLayout, nullptr, &vkhDescriptorSetLayout) != VK_SUCCESS) {
+    if (vkCreateDescriptorSetLayout(vkhLogicalDevice, &infoDescriptorSetLayout, nullptr, &resbShaderBackend->vkhDescriptorSetLayout) != VK_SUCCESS) {
         throw std::runtime_error("Unable to create the descriptor set layout");
     }
 }
+
+
+// Destroy the descriptor set layout.
+void GfxAPIVulkan::DestroyDescriptorSetLayout(ShaderBackendVulkan *resbShaderBackend) {
+	vkDestroyDescriptorSetLayout(vkhLogicalDevice, resbShaderBackend->vkhDescriptorSetLayout, nullptr);
+}
+
 
 // Create the graphics pipeline.
 void GfxAPIVulkan::CreateGraphicsPipeline(const std::string &strVertexProgram, const std::string &strPixelProgram, ShaderBackendVulkan *resbShaderBackend) {
@@ -1131,7 +1122,7 @@ void GfxAPIVulkan::CreateGraphicsPipeline(const std::string &strVertexProgram, c
 	infoPipelineLayout.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     // bind the descriptor set layout
 	infoPipelineLayout.setLayoutCount = 1;
-	infoPipelineLayout.pSetLayouts = &vkhDescriptorSetLayout;
+	infoPipelineLayout.pSetLayouts = &resbShaderBackend->vkhDescriptorSetLayout;
     // not using push constants at the moment
 	infoPipelineLayout.pushConstantRangeCount = 0;
 	infoPipelineLayout.pPushConstantRanges = 0;
@@ -1326,7 +1317,7 @@ void GfxAPIVulkan::RecordCommandBuffers(const uint32_t iCommandBuffer) {
     vkCmdBindPipeline(vkhCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, aresbShaderBackends[0]->vkhPipeline);
 
     // bind the descriptor sets
-    vkCmdBindDescriptorSets(vkhCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, aresbShaderBackends[0]->vkhPipelineLayout, 0, 1, &vkhDescriptorSet, 0, nullptr);
+    vkCmdBindDescriptorSets(vkhCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, aresbShaderBackends[0]->vkhPipelineLayout, 0, 1, &(aresbShaderBackends[0]->vkhDescriptorSet), 0, nullptr);
 
     // bind the vertex buffer
     for (MeshBackendVulkan *resbMeshBackend : aresbMeshBackends) {
@@ -1459,6 +1450,32 @@ void GfxAPIVulkan::DestroyTextureImage(TextureBackendVulkan *resbBackend) {
     vkDestroyImage(vkhLogicalDevice, resbBackend->vkhImageData, nullptr);
     // release memory used by the texture
     vkFreeMemory(vkhLogicalDevice, resbBackend->vkhImageMemory, nullptr);
+}
+
+
+// Create a shader and all required Vulkan resources for it.
+void GfxAPIVulkan::CreateShader(ShaderBackendVulkan *resbShaderBackend, const std::string &strVertexProgram, const std::string &strPixelProgram) {
+	// invoke the API to create pipeline data
+	CreateDescriptorSetLayout(resbShaderBackend);
+	// invoke the API to create pipeline data
+	CreateGraphicsPipeline(strVertexProgram, strPixelProgram, resbShaderBackend);
+	// create the descriptor pool
+	CreateDescriptorPool(resbShaderBackend);
+	// create the descriptor set
+	CreateDescriptorSet(resbShaderBackend);
+}
+
+
+// Destroy the shader and all allocated resources.
+void GfxAPIVulkan::DestroyShader(ShaderBackendVulkan *resbShaderBackend) {
+	// destroy backend representation of a texture
+	GfxAPIVulkan::Get()->DestroyGraphicsPipeline(resbShaderBackend);
+
+	// destroy the desctiptor pool
+	vkDestroyDescriptorPool(vkhLogicalDevice, resbShaderBackend->vkhDescriptorPool, nullptr);
+
+	// destroy the descriptor set layout
+	GfxAPIVulkan::Get()->DestroyDescriptorSetLayout(resbShaderBackend);
 }
 
 
@@ -1767,8 +1784,10 @@ void GfxAPIVulkan::DestroyBuffer(VkBuffer vkhBuffer, VkDeviceMemory vkhBufferMem
 
 
 // create the descriptor pool
-void GfxAPIVulkan::CreateDescriptorPool() {
-    // describe the descriptors that go into this pool
+void GfxAPIVulkan::CreateDescriptorPool(ShaderBackendVulkan *resbShaderBackend) {
+	// TODO: this needs to be per shader
+
+	// describe the descriptors that go into this pool
     std::array<VkDescriptorPoolSize, 2> ainfoPoolSizes = {};
     // the first one is the pool for uniform buffer descriptors
     ainfoPoolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -1789,16 +1808,18 @@ void GfxAPIVulkan::CreateDescriptorPool() {
     infoDescriptorPool.maxSets = 1;
 
     // create the descriptor pool
-    if (vkCreateDescriptorPool(vkhLogicalDevice, &infoDescriptorPool, nullptr, &vkhDescriptorPool) != VK_SUCCESS) {
+    if (vkCreateDescriptorPool(vkhLogicalDevice, &infoDescriptorPool, nullptr, &resbShaderBackend->vkhDescriptorPool) != VK_SUCCESS) {
         throw std::runtime_error("Failed to create the descriptor pool");
     }
 }
 
 
 // Create the descriptor set.
-void GfxAPIVulkan::CreateDescriptorSet() {
-    // prepare the layouts for binding
-    VkDescriptorSetLayout avkhLayouts[] = { vkhDescriptorSetLayout };
+void GfxAPIVulkan::CreateDescriptorSet(ShaderBackendVulkan *resbShaderBackend) {
+	// TODO: this needs to be per shader
+
+	// prepare the layouts for binding
+    VkDescriptorSetLayout avkhLayouts[] = { resbShaderBackend->vkhDescriptorSetLayout };
 
     //describe the descriptor set allocation
     VkDescriptorSetAllocateInfo infoDescriptorSetAllocation = {};
@@ -1807,16 +1828,17 @@ void GfxAPIVulkan::CreateDescriptorSet() {
     infoDescriptorSetAllocation.descriptorSetCount = 1;
     infoDescriptorSetAllocation.pSetLayouts = avkhLayouts;
     // bind the descriptor pool
-    infoDescriptorSetAllocation.descriptorPool = vkhDescriptorPool;
+    infoDescriptorSetAllocation.descriptorPool = resbShaderBackend->vkhDescriptorPool;
 
     // create the descriptor set
-    if (vkAllocateDescriptorSets(vkhLogicalDevice, &infoDescriptorSetAllocation, &vkhDescriptorSet) != VK_SUCCESS) {
+    if (vkAllocateDescriptorSets(vkhLogicalDevice, &infoDescriptorSetAllocation, &resbShaderBackend->vkhDescriptorSet) != VK_SUCCESS) {
         throw std::runtime_error("Unable to allocate the descriptor set");
     }
 }
 
 // Update the descriptor set.
-void GfxAPIVulkan::UpdateDescriptorSet() {
+void GfxAPIVulkan::UpdateDescriptorSet(ShaderBackendVulkan *resbShaderBackend) {
+	// TODO: this needs to be per shader
 
     // use a descriptor to describe the uniform buffer
     VkDescriptorBufferInfo infoUniformBuffer = {};
@@ -1842,7 +1864,7 @@ void GfxAPIVulkan::UpdateDescriptorSet() {
     // describe the set for the uniform buffer
     ainfoUpdateDescriptorSets[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     // mark the set to update
-    ainfoUpdateDescriptorSets[0].dstSet = vkhDescriptorSet;
+    ainfoUpdateDescriptorSets[0].dstSet = resbShaderBackend->vkhDescriptorSet;
     // set the shader binding for the uniform
     ainfoUpdateDescriptorSets[0].dstBinding = 0;
     // the descriptor doesn't describe an array
@@ -1857,7 +1879,7 @@ void GfxAPIVulkan::UpdateDescriptorSet() {
     // describe the set for the image sampler
     ainfoUpdateDescriptorSets[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     // mark the set to update
-    ainfoUpdateDescriptorSets[1].dstSet = vkhDescriptorSet;
+    ainfoUpdateDescriptorSets[1].dstSet = resbShaderBackend->vkhDescriptorSet;
     // set the shader binding for the sampler
     ainfoUpdateDescriptorSets[1].dstBinding = 1;
     // the descriptor doesn't describe an array
@@ -2047,7 +2069,7 @@ void GfxAPIVulkan::Render() {
     UpdateUniformBuffer();
 
     // update the descirptor set - uniform and texture bindings
-    UpdateDescriptorSet();
+    UpdateDescriptorSet(aresbShaderBackends[0]);
 
     // obtain a target image from the swap chain
     // setting max uint64 as the timeout (in nanoseconds) disables the timeout

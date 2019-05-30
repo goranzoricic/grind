@@ -17,6 +17,13 @@ private:
 	// Frontend mesh pair for this backend
 	Shader *resFrontend = { nullptr };
 
+    // Descriptor set layout for uniform buffers.
+    VkDescriptorSetLayout vkhDescriptorSetLayout = { VK_NULL_HANDLE };
+	// Descriptor pool used to allocate descriptor sets.
+	VkDescriptorPool vkhDescriptorPool = { VK_NULL_HANDLE };
+	// Descriptor set that will hold the uniform buffer.
+	VkDescriptorSet vkhDescriptorSet = { VK_NULL_HANDLE };
+
 	// Layout of the graphics pipeline.
 	VkPipelineLayout vkhPipelineLayout = { VK_NULL_HANDLE };
 	// Graphics pipeline.

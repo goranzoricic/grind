@@ -14,13 +14,13 @@ ShaderBackendVulkan::ShaderBackendVulkan(Shader* resShaderFrontend, const std::s
 	// store the frontend shader
 	resFrontend = resShaderFrontend;
 
-    // invoke the API to create pipeline data
-    GfxAPIVulkan::Get()->CreateGraphicsPipeline(strVertexProgram, strPixelProgram, this);
+	// let the API create all required resources for the shader
+	GfxAPIVulkan::Get()->CreateShader(this, strVertexProgram, strPixelProgram);
 }
 
 ShaderBackendVulkan::~ShaderBackendVulkan() {
-    // destroy backend representation of a texture
-    GfxAPIVulkan::Get()->DestroyGraphicsPipeline(this);
+	// let the API destroy all resources allocated by this shader
+	GfxAPIVulkan::Get()->DestroyShader(this);
 }
 
 
