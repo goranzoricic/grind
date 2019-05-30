@@ -8,13 +8,9 @@
 #include "Config/Options.h"
 #include "GfxAPI/Window.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "../ThirdParty/stb_image.h"
-
-#define TINYOBJLOADER_IMPLEMENTATION
-#include "../ThirdParty/tiny_obj_loader.h"
-
 #include <Geometry/Vertex.h>
+#include "Resources/ResourcePtr.hpp"
+#include <Renderer/Renderable.h>
 #include <Resources/Mesh.h>
 #include <Resources/Shader.h>
 #include <Resources/Texture.h>
@@ -1319,9 +1315,10 @@ void GfxAPIVulkan::RecordCommandBuffers(const uint32_t iCommandBuffer) {
     // bind the descriptor sets
     vkCmdBindDescriptorSets(vkhCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, aresbShaderBackends[0]->vkhPipelineLayout, 0, 1, &(aresbShaderBackends[0]->vkhDescriptorSet), 0, nullptr);
 
-    // bind the vertex buffer
-    for (MeshBackendVulkan *resbMeshBackend : aresbMeshBackends) {
-        VkBuffer avkhBuffers[] = { resbMeshBackend->vkhVertexBuffer };
+    // record commands to draw vertex buffers
+    for (auto &renderable: *arenRenderableDrawList) {
+		auto* resbMeshBackend = static_cast<MeshBackendVulkan*>(renderable->GetModel()->GetGeometry()->GetBackend());
+		VkBuffer avkhBuffers[] = { resbMeshBackend->vkhVertexBuffer };
         VkDeviceSize actOffsets[] = { 0 };
         vkCmdBindVertexBuffers(vkhCommandBuffer, 0, 1, avkhBuffers, actOffsets);
         // bind the index buffer
@@ -1837,8 +1834,9 @@ void GfxAPIVulkan::CreateDescriptorSet(ShaderBackendVulkan *resbShaderBackend) {
 }
 
 // Update the descriptor set.
-void GfxAPIVulkan::UpdateDescriptorSet(ShaderBackendVulkan *resbShaderBackend) {
-	// TODO: this needs to be per shader
+void GfxAPIVulkan::UpdateDescriptorSet(const RenderablePtr &renRenderable) {
+	auto* resbShaderBackend = static_cast<ShaderBackendVulkan*>(renRenderable->GetModel()->GetShader()->GetBackend());
+	auto* resbTextureBackend = static_cast<TextureBackendVulkan*>(renRenderable->GetModel()->GetTexture()->GetBackend());
 
     // use a descriptor to describe the uniform buffer
     VkDescriptorBufferInfo infoUniformBuffer = {};
@@ -1853,10 +1851,9 @@ void GfxAPIVulkan::UpdateDescriptorSet(ShaderBackendVulkan *resbShaderBackend) {
     VkDescriptorImageInfo infoImage = {};
     // set the image layout to optimal for reading from a fragment shader
     infoImage.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    const TextureBackendVulkan *resbTexture = aresbTextureBackends[0];
     // set the image view and sampler
-    infoImage.imageView = resbTexture->vkhImageView;
-    infoImage.sampler = resbTexture->vkhImageSampler;
+    infoImage.imageView = resbTextureBackend->vkhImageView;
+    infoImage.sampler = resbTextureBackend->vkhImageSampler;
 
     // describe how to update the descriptor sets
     std::array<VkWriteDescriptorSet, 2> ainfoUpdateDescriptorSets = {};
@@ -2064,12 +2061,16 @@ void GfxAPIVulkan::UpdateUniformBuffer() {
 }
 
 // Render a frame.
-void GfxAPIVulkan::Render() {
+void GfxAPIVulkan::Render(RenderableDrawList& renderableDrawList) {
+	arenRenderableDrawList = &renderableDrawList;
+
+	const auto &renRenderable = (*arenRenderableDrawList)[0];
+
     // update model, view and perspective matrices
     UpdateUniformBuffer();
 
     // update the descirptor set - uniform and texture bindings
-    UpdateDescriptorSet(aresbShaderBackends[0]);
+    UpdateDescriptorSet(renRenderable);
 
     // obtain a target image from the swap chain
     // setting max uint64 as the timeout (in nanoseconds) disables the timeout

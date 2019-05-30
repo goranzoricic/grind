@@ -49,6 +49,9 @@ void Model::LoadModel() {
 	// load the texture
 	sInFile >> resourceName;
 	rpTexture = Texture::Obtain(resourceName);
+	// load the shader
+	sInFile >> resourceName;
+	rpShader = Shader::Obtain(resourceName);
 
 	// close the file
 	sInFile.close();

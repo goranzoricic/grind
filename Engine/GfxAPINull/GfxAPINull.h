@@ -15,7 +15,7 @@ public:
     virtual bool Destroy();
 
     // Render a frame.
-    virtual void Render();
+    virtual void Render(RenderableDrawList& renderableDrawList);
 
     // Create the backend (API internal) representation for a frontend (external, API agnostic) mesh.
     virtual MeshBackend *CreateBackend(Mesh *resFrontend);

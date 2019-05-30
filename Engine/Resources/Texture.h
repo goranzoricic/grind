@@ -41,6 +41,9 @@ public:
 	// Get the Texture's information.
     const TextureDescription &GetTextureInfo() const { return infTextureDescription; }
 
+	// getter for the backend. Note that this is not a virtual function.
+	TextureBackend *GetBackend() { return backTexture; }
+
 private:
     // Destroy the Texture. 
     virtual void Destroy();

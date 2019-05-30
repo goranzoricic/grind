@@ -15,6 +15,9 @@ public:
     virtual ~Renderable() {};
 
 
+	// Getter for the model this renderable is drawing.
+	ResourcePtr<Model> GetModel() { return _mdlModel; }
+
 private:
 	// Model that this renderable will draw.
 	ResourcePtr<Model> _mdlModel;

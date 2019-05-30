@@ -30,6 +30,8 @@ private:
 	void ObtainResources();
 	// Create the objects to render.
 	void CreateRenderables();
+	// Destroy all renderables.
+	void DestroyRenderables();
 	// Program's main loop
 	void MainLoop();
 	// Clear all resource pointers, to unload resources.
@@ -43,5 +45,5 @@ private:
 	ResourcePtr<Shader> rpShader = { nullptr };
 	ResourcePtr<Texture> rpTexture = { nullptr };
 
-	std::unique_ptr<Renderable> _renderable;
+	std::shared_ptr<Renderable> _renderable;
 };

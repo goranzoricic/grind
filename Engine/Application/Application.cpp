@@ -59,9 +59,15 @@ void Application::ObtainResources() {
 
 // Create the objects to render.
 void Application::CreateRenderables() {
-	_renderable = std::make_unique<Renderable>("../model.model");
+	_renderable = std::make_shared<Renderable>("../model.model");
+	Renderer::Get()->addRenderable(_renderable);
 }
 
+// Destroy all renderables.
+void Application::DestroyRenderables() {
+	Renderer::Get()->removeRenderable(_renderable);
+	_renderable == nullptr;
+}
 
 // Program's main loop
 void Application::MainLoop() {

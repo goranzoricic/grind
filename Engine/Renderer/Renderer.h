@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Renderable.h"
+#include "GfxAPI/GfxAPI.h"
 
-class GfxAPI;
 enum class GfxAPIType;
 
 // This class implements the renderer. It provides the applciation with means to draw objects on screen.
@@ -38,6 +38,6 @@ protected:
     static Renderer* _renInstance;
 	
 	// Collection of all renderables that are drawn each frame.
-	std::vector<std::shared_ptr<Renderable>> _arenRenderables;
+	GfxAPI::RenderableDrawList _arenRenderables;
 };
 

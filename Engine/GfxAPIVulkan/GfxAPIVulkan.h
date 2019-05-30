@@ -47,7 +47,7 @@ public:
     virtual bool Destroy();
 
     // Render a frame.
-    virtual void Render(); 
+    virtual void Render(RenderableDrawList& renderableDrawList);
 
     // Create the backend (API internal) representation for a frontend (external, API agnostic) mesh.
     virtual MeshBackend *CreateBackend(Mesh *resFrontend);
@@ -216,7 +216,7 @@ private:
     // Create the descriptor set.
     void CreateDescriptorSet(ShaderBackendVulkan *resbShaderBackend);
     // Update the descriptor set.
-    void UpdateDescriptorSet(ShaderBackendVulkan *resbShaderBackend);
+    void UpdateDescriptorSet(const RenderablePtr &renRenderable);
 
     // Get the graphics memory type with the desired properties.
     uint32_t FindMemoryType(uint32_t flgTypeFilter, VkMemoryPropertyFlags flgProperties);
@@ -321,6 +321,9 @@ private:
 	std::vector<ShaderBackendVulkan *> aresbShaderBackends;
 	// Array of active texture backends.
     std::vector<TextureBackendVulkan *> aresbTextureBackends;
+
+	// Collection of all renderables that are drawn each frame.
+	GfxAPI::RenderableDrawList* arenRenderableDrawList = { nullptr };
 
     // NOTE: refactor this.
     // Describe to the Vulkan API how to handle Vertex data.

@@ -36,6 +36,9 @@ public:
     // Get the mesh'es indices.
     const std::vector<uint32_t> &GetIndices() { return aiIndices; }
 
+	// getter for the backend. Note that this is not a virtual function.
+	MeshBackend *GetBackend() { return backMesh; }
+
 private:
     // Destroy the mesh. 
     virtual void Destroy();

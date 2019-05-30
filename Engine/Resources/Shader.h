@@ -29,6 +29,9 @@ public:
     // Load the shader from a .shader file.
 	void LoadShader();
 
+	// getter for the backend. Note that this is not a virtual function.
+	ShaderBackend *GetBackend() { return backShader; }
+
 private:
     // Destroy the Shader. 
     virtual void Destroy();

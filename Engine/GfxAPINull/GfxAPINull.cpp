@@ -19,7 +19,7 @@ bool GfxAPINull::Destroy() {
 
 
 // Render a frame.
-void GfxAPINull::Render() {
+void GfxAPINull::Render(RenderableDrawList& renderableDrawList) {
     return;
 }
 

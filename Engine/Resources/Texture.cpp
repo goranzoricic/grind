@@ -1,5 +1,8 @@
 #include "PrecompiledHeader.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "../ThirdParty/stb_image.h"
+
 #include "Resources/ResourcePtr.h"
 #include "Resources/ResourcePtr.hpp"
 #include "Resources/ResourceManager.h"

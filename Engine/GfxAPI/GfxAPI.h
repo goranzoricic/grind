@@ -8,6 +8,8 @@ enum class GfxAPIType {
 
 class Window;
 
+class Renderable;
+
 class Mesh;
 class MeshBackend;
 class Shader;
@@ -29,6 +31,10 @@ public:
     GfxAPI(GfxAPI const &) = delete;
     void operator = (GfxAPI const &) = delete;
 
+	// Type of the renderable pointer and the list of renderables to draw.
+	using RenderablePtr = std::shared_ptr<Renderable>;
+	using RenderableDrawList = std::vector<RenderablePtr>;
+
 // Public interface.
 public:
     // Get the current graphics API instance.
@@ -47,7 +53,7 @@ public:
     std::shared_ptr<Window> &GetWindow() { return _wndWindow;  }
 
     // Render a frame.
-    virtual void Render() = 0;
+    virtual void Render(RenderableDrawList& renderableDrawList) = 0;
 
     // Create the backend (API internal) representation for a frontend (external, API agnostic) mesh.
     virtual MeshBackend *CreateBackend(Mesh *resFrontend) = 0;

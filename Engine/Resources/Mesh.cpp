@@ -1,5 +1,8 @@
 #include "PrecompiledHeader.h"
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "../ThirdParty/tiny_obj_loader.h"
+
 #include "Resources/ResourcePtr.h"
 #include "Resources/ResourcePtr.hpp"
 #include "Resources/ResourceManager.h"
