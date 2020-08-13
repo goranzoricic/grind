@@ -1,5 +1,8 @@
 #include "PrecompiledHeader.h"
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "../ThirdParty/tiny_obj_loader.h"
+
 #include "Resources/ResourcePtr.h"
 #include "Resources/ResourcePtr.hpp"
 #include "Resources/ResourceManager.h"
@@ -86,5 +89,6 @@ void Mesh::LoadOBJ() {
 
 // Destroy the mesh. 
 void Mesh::Destroy() {
-
+	// destroy the backend representation of this mesh
+	GfxAPI::Get()->DestroyBackend(backMesh);
 }

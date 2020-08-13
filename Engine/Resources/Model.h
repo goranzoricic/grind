@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Resources/Mesh.h"
+#include "Resources/Shader.h"
 #include "Resources/Texture.h"
 
 // Model represents an object rendered on the screen, consisting of geometry and materials.
@@ -25,8 +26,13 @@ public:
     // Virtual destructor that does cleanup.
 	virtual ~Model();
 
-    // Load the Model from an .obj file.
+    // Load the model from a .model file.
 	void LoadModel();
+
+	// Getters for model's dependencies.
+	ResourcePtr<Mesh> GetGeometry() { return rpGeometry; }
+	ResourcePtr<Texture> GetTexture() { return rpTexture; }
+	ResourcePtr<Shader> GetShader() { return rpShader; }
 
 private:
     // Destroy the Model. 
@@ -36,4 +42,7 @@ private:
 	ResourcePtr<Mesh> rpGeometry;
 	// Texture to use to render the model with.
 	ResourcePtr<Texture> rpTexture;
+
+	// Shader to use to render the model with.
+	ResourcePtr<Shader> rpShader;
 };

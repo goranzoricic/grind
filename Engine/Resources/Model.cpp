@@ -37,7 +37,7 @@ Model::~Model() {
 }
 
 
-// Load the Model from an .obj file.
+// Load the Model from a .model file.
 void Model::LoadModel() {
 	std::ifstream sInFile;
 	sInFile.open(strName);
@@ -49,12 +49,18 @@ void Model::LoadModel() {
 	// load the texture
 	sInFile >> resourceName;
 	rpTexture = Texture::Obtain(resourceName);
+	// load the shader
+	sInFile >> resourceName;
+	rpShader = Shader::Obtain(resourceName);
 
+	// close the file
 	sInFile.close();
 }
 
 
 // Destroy the Model. 
 void Model::Destroy() {
-
+	// clear resource pointer
+	rpGeometry = nullptr;
+	rpTexture = nullptr;
 }

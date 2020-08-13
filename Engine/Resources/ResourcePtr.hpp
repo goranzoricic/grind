@@ -54,6 +54,18 @@ const ResourcePtr<T> &ResourcePtr<T>::operator = (const ResourcePtr &presOther) 
 }
 
 
+// Assignment operator for the nullptr.
+template <class T>
+const ResourcePtr<T> &ResourcePtr<T>::operator = (std::nullptr_t const pNull) {
+	// remove the reference to the current object (it might get deleted)
+	if (presResource != nullptr) {
+		presResource->RemoveReference();
+	}
+	// clear the resource pointer
+	presResource = nullptr;
+	return *this;
+}
+
 // Assignment operator, same properties as the default constructor.
 template <class T>
 const ResourcePtr<T> &ResourcePtr<T>::operator = (T * const presOther) {

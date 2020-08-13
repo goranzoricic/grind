@@ -1,4 +1,5 @@
 #include "PrecompiledHeader.h"
+#include "PrecompiledHeader.h"
 #include "GfxAPIVulkan.h"
 
 #define GLFW_INCLUDE_VULKAN
@@ -7,17 +8,15 @@
 #include "Config/Options.h"
 #include "GfxAPI/Window.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "../ThirdParty/stb_image.h"
-
-#define TINYOBJLOADER_IMPLEMENTATION
-#include "../ThirdParty/tiny_obj_loader.h"
-
-#include <GfxAPIVulkan/MeshBackendVulkan.h>
-#include <Resources/Mesh.h>
 #include <Geometry/Vertex.h>
+#include "Resources/ResourcePtr.hpp"
+#include <Renderer/Renderable.h>
+#include <Resources/Mesh.h>
+#include <Resources/Shader.h>
 #include <Resources/Texture.h>
 
+#include <GfxAPIVulkan/MeshBackendVulkan.h>
+#include <GfxAPIVulkan/ShaderBackendVulkan.h>
 #include <GfxAPIVulkan/TextureBackendVulkan.h>
 
 
@@ -76,10 +75,6 @@ bool GfxAPIVulkan::Initialize(uint32_t dimWidth, uint32_t dimHeight) {
     CreateImageViews();
     // create the render pass
     CreateRenderPass();
-    // create descriptor set layout
-    CreateDescriptorSetLayout();
-    // create the graphics pipeline
-    CreateGraphicsPipeline();
     // create the command pool
     CreateCommandPool();
 
@@ -90,10 +85,6 @@ bool GfxAPIVulkan::Initialize(uint32_t dimWidth, uint32_t dimHeight) {
 
     // create uniform buffer
     CreateUniformBuffers();
-    // create the descriptor pool
-    CreateDescriptorPool();
-    // create the descriptor set
-    CreateDescriptorSet();
 
     // allocate command buffers
     CreateCommandBuffers();
@@ -113,10 +104,6 @@ bool GfxAPIVulkan::Destroy() {
     // destroy the swap chain
     DestroySwapChain();
     
-    // destroy the desctiptor pool
-    vkDestroyDescriptorPool(vkhLogicalDevice, vkhDescriptorPool, nullptr);
-    // destroy the descriptor set layout
-    vkDestroyDescriptorSetLayout(vkhLogicalDevice, vkhDescriptorSetLayout, nullptr);
     // destroy the uniform buffer
     DestroyBuffer(vkhUniformBuffer, vkhUniformBufferMemory);
 
@@ -158,8 +145,6 @@ void GfxAPIVulkan::InitializeSwapChain() {
     CreateImageViews();
     // create the render pass
     CreateRenderPass();
-    // create the graphics pipeline
-    CreateGraphicsPipeline();
     // create resources needed for depth testing
     CreateDepthResources();
     // create the framebuffers
@@ -184,10 +169,6 @@ void GfxAPIVulkan::DestroySwapChain() {
     // destroy the framebuffers
     DestroyFramebuffers();
 
-    // destroy the pipeline
-    vkDestroyPipeline(vkhLogicalDevice, vkhPipeline, nullptr);
-	// destroy the pipeline layout
-	vkDestroyPipelineLayout(vkhLogicalDevice, vkhPipelineLayout, nullptr);
 	// destroy the render pass
 	vkDestroyRenderPass(vkhLogicalDevice, vkhRenderPass, nullptr);
 	// destroy the image views
@@ -941,7 +922,7 @@ void GfxAPIVulkan::CreateRenderPass() {
 
 
 // Create descriptor sets - used to bind uniforms to shaders.
-void GfxAPIVulkan::CreateDescriptorSetLayout() {
+void GfxAPIVulkan::CreateDescriptorSetLayout(ShaderBackendVulkan *resbShaderBackend) {
     // describe the descriptor set binding for the uniform buffer
     VkDescriptorSetLayoutBinding infoUniformBinding = {};
     // set the binding index (defined in the shader)
@@ -965,8 +946,7 @@ void GfxAPIVulkan::CreateDescriptorSetLayout() {
     infoSamplerBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
     // no immutable samplers
     infoSamplerBinding.pImmutableSamplers = nullptr;
-
-
+	
     // describe the descriptor set layout
     VkDescriptorSetLayoutCreateInfo infoDescriptorSetLayout = {};
     infoDescriptorSetLayout.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -978,16 +958,23 @@ void GfxAPIVulkan::CreateDescriptorSetLayout() {
     infoDescriptorSetLayout.pBindings = ainfoBindings.data();
 
     // create the layout
-    if (vkCreateDescriptorSetLayout(vkhLogicalDevice, &infoDescriptorSetLayout, nullptr, &vkhDescriptorSetLayout) != VK_SUCCESS) {
+    if (vkCreateDescriptorSetLayout(vkhLogicalDevice, &infoDescriptorSetLayout, nullptr, &resbShaderBackend->vkhDescriptorSetLayout) != VK_SUCCESS) {
         throw std::runtime_error("Unable to create the descriptor set layout");
     }
 }
 
+
+// Destroy the descriptor set layout.
+void GfxAPIVulkan::DestroyDescriptorSetLayout(ShaderBackendVulkan *resbShaderBackend) {
+	vkDestroyDescriptorSetLayout(vkhLogicalDevice, resbShaderBackend->vkhDescriptorSetLayout, nullptr);
+}
+
+
 // Create the graphics pipeline.
-void GfxAPIVulkan::CreateGraphicsPipeline() {
+void GfxAPIVulkan::CreateGraphicsPipeline(const std::string &strVertexProgram, const std::string &strPixelProgram, ShaderBackendVulkan *resbShaderBackend) {
 
     // load the vertex module
-    VkShaderModule modVert = CreateShaderModule("../vert.spv");
+    VkShaderModule modVert = CreateShaderModule(strVertexProgram);
     // describe the vertex shader stage
     VkPipelineShaderStageCreateInfo infoShaderStageVert = {};
     infoShaderStageVert.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -998,7 +985,7 @@ void GfxAPIVulkan::CreateGraphicsPipeline() {
     infoShaderStageVert.module = modVert;
 
     // load the fragment module
-    VkShaderModule modFrag = CreateShaderModule("../frag.spv");
+    VkShaderModule modFrag = CreateShaderModule(strPixelProgram);
     // describe the fragment shader stage
     VkPipelineShaderStageCreateInfo infoShaderStageFrag = {};
     infoShaderStageFrag.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -1131,13 +1118,13 @@ void GfxAPIVulkan::CreateGraphicsPipeline() {
 	infoPipelineLayout.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     // bind the descriptor set layout
 	infoPipelineLayout.setLayoutCount = 1;
-	infoPipelineLayout.pSetLayouts = &vkhDescriptorSetLayout;
+	infoPipelineLayout.pSetLayouts = &resbShaderBackend->vkhDescriptorSetLayout;
     // not using push constants at the moment
 	infoPipelineLayout.pushConstantRangeCount = 0;
 	infoPipelineLayout.pPushConstantRanges = 0;
 
 	// create the pipeline layout
-	if (vkCreatePipelineLayout(vkhLogicalDevice, &infoPipelineLayout, nullptr, &vkhPipelineLayout) != VK_SUCCESS) {
+	if (vkCreatePipelineLayout(vkhLogicalDevice, &infoPipelineLayout, nullptr, &(resbShaderBackend->vkhPipelineLayout)) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create the pipeline layout!");
 	}
 
@@ -1174,7 +1161,7 @@ void GfxAPIVulkan::CreateGraphicsPipeline() {
     infoGraphicsPipeline.pColorBlendState = &infoColorBlendState;
     infoGraphicsPipeline.pDynamicState = nullptr;
     // set the pipeline layout
-    infoGraphicsPipeline.layout = vkhPipelineLayout;
+    infoGraphicsPipeline.layout = resbShaderBackend->vkhPipelineLayout;
     // set up the render pass
     infoGraphicsPipeline.renderPass = vkhRenderPass;
     infoGraphicsPipeline.subpass = 0;
@@ -1183,13 +1170,23 @@ void GfxAPIVulkan::CreateGraphicsPipeline() {
     infoGraphicsPipeline.basePipelineIndex = -1;
 
     // create the graphics pipeline
-    if (vkCreateGraphicsPipelines(vkhLogicalDevice, VK_NULL_HANDLE, 1, &infoGraphicsPipeline, nullptr, &vkhPipeline) != VK_SUCCESS) {
+    if (vkCreateGraphicsPipelines(vkhLogicalDevice, VK_NULL_HANDLE, 1, &infoGraphicsPipeline, nullptr, &(resbShaderBackend->vkhPipeline)) != VK_SUCCESS) {
         throw std::runtime_error("Failed to create the graphics pipeline");
     }
 
     // destroy shader modules - they are a part of the graphics pipeline
     vkDestroyShaderModule(vkhLogicalDevice, modFrag, nullptr);
     vkDestroyShaderModule(vkhLogicalDevice, modVert, nullptr);
+}
+
+
+// Destroy the graphics pipeline.
+void GfxAPIVulkan::DestroyGraphicsPipeline(ShaderBackendVulkan *resbBackend)
+{
+	// destroy the pipeline
+	vkDestroyPipeline(vkhLogicalDevice, resbBackend->vkhPipeline, nullptr);
+	// destroy the pipeline layout
+	vkDestroyPipelineLayout(vkhLogicalDevice, resbBackend->vkhPipelineLayout, nullptr);
 }
 
 
@@ -1275,8 +1272,8 @@ void GfxAPIVulkan::CreateCommandBuffers() {
 }
 
 
-// Record the command buffers - NOTE: this is for the simple drawing from the tutorial.
-void GfxAPIVulkan::RecordCommandBuffers() {
+// Record the command buffer, only for the current swapchain image. - NOTE: this is for the simple drawing from the tutorial.
+void GfxAPIVulkan::RecordCommandBuffers(const uint32_t iCommandBuffer) {
     //  describe how the command buffers will be used
     VkCommandBufferBeginInfo infoCommandBufferBegin = {};
     infoCommandBufferBegin.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -1302,41 +1299,40 @@ void GfxAPIVulkan::RecordCommandBuffers() {
     infoRenderPassBegin.clearValueCount = static_cast<uint32_t>(acolClearColors.size());
     infoRenderPassBegin.pClearValues = acolClearColors.data();
 
-    // record the same commands in all buffers
-    for (int iCommandBuffer = 0; iCommandBuffer < avkhCommandBuffers.size(); iCommandBuffer++) {
-        VkCommandBuffer &vkhCommandBuffer = avkhCommandBuffers[iCommandBuffer];
-        // begin the command buffer
-        vkBeginCommandBuffer(vkhCommandBuffer, &infoCommandBufferBegin);
+    // record the same commands in the buffer
+    VkCommandBuffer &vkhCommandBuffer = avkhCommandBuffers[iCommandBuffer];
+    // begin the command buffer
+    vkBeginCommandBuffer(vkhCommandBuffer, &infoCommandBufferBegin);
 
-        // bind the frame buffer to the render pass
-        infoRenderPassBegin.framebuffer = avkhFramebuffers[iCommandBuffer];
+    // bind the frame buffer to the render pass
+    infoRenderPassBegin.framebuffer = avkhFramebuffers[iCommandBuffer];
 
-        // issue (record) the command to begin the render pass, with the command executed from the primary buffer
-        vkCmdBeginRenderPass(vkhCommandBuffer, &infoRenderPassBegin, VK_SUBPASS_CONTENTS_INLINE);
-        // issue the command to bind the graphics pipeline
-        vkCmdBindPipeline(vkhCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkhPipeline);
+    // issue (record) the command to begin the render pass, with the command executed from the primary buffer
+    vkCmdBeginRenderPass(vkhCommandBuffer, &infoRenderPassBegin, VK_SUBPASS_CONTENTS_INLINE);
+    // issue the command to bind the graphics pipeline
+    vkCmdBindPipeline(vkhCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, aresbShaderBackends[0]->vkhPipeline);
 
-        // bind the descriptor sets
-        vkCmdBindDescriptorSets(vkhCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkhPipelineLayout, 0, 1, &vkhDescriptorSet, 0, nullptr);
+    // bind the descriptor sets
+    vkCmdBindDescriptorSets(vkhCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, aresbShaderBackends[0]->vkhPipelineLayout, 0, 1, &(aresbShaderBackends[0]->vkhDescriptorSet), 0, nullptr);
 
-        // bind the vertex buffer
-        for (MeshBackendVulkan *resbMeshBackend : aresbMeshBackends) {
-            VkBuffer avkhBuffers[] = { resbMeshBackend->vkhVertexBuffer };
-            VkDeviceSize actOffsets[] = { 0 };
-            vkCmdBindVertexBuffers(vkhCommandBuffer, 0, 1, avkhBuffers, actOffsets);
-            // bind the index buffer
-            vkCmdBindIndexBuffer(vkhCommandBuffer, resbMeshBackend->vkhIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-            // issue the draw command to draw index buffers
-            vkCmdDrawIndexed(vkhCommandBuffer, resbMeshBackend->GetIndexCount(), 1, 0, 0, 0);
-        }
+    // record commands to draw vertex buffers
+    for (auto &renderable: *arenRenderableDrawList) {
+		auto* resbMeshBackend = static_cast<MeshBackendVulkan*>(renderable->GetModel()->GetGeometry()->GetBackend());
+		VkBuffer avkhBuffers[] = { resbMeshBackend->vkhVertexBuffer };
+        VkDeviceSize actOffsets[] = { 0 };
+        vkCmdBindVertexBuffers(vkhCommandBuffer, 0, 1, avkhBuffers, actOffsets);
+        // bind the index buffer
+        vkCmdBindIndexBuffer(vkhCommandBuffer, resbMeshBackend->vkhIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        // issue the draw command to draw index buffers
+        vkCmdDrawIndexed(vkhCommandBuffer, resbMeshBackend->GetIndexCount(), 1, 0, 0, 0);
+    }
 
-        // issue the command to end the render pass
-        vkCmdEndRenderPass(vkhCommandBuffer);
+    // issue the command to end the render pass
+    vkCmdEndRenderPass(vkhCommandBuffer);
 
-        // end the command buffer
-        if (vkEndCommandBuffer(vkhCommandBuffer) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to record command buffer");
-        }
+    // end the command buffer
+    if (vkEndCommandBuffer(vkhCommandBuffer) != VK_SUCCESS) {
+        throw std::runtime_error("Failed to record command buffer");
     }
 }
 
@@ -1451,6 +1447,32 @@ void GfxAPIVulkan::DestroyTextureImage(TextureBackendVulkan *resbBackend) {
     vkDestroyImage(vkhLogicalDevice, resbBackend->vkhImageData, nullptr);
     // release memory used by the texture
     vkFreeMemory(vkhLogicalDevice, resbBackend->vkhImageMemory, nullptr);
+}
+
+
+// Create a shader and all required Vulkan resources for it.
+void GfxAPIVulkan::CreateShader(ShaderBackendVulkan *resbShaderBackend, const std::string &strVertexProgram, const std::string &strPixelProgram) {
+	// invoke the API to create pipeline data
+	CreateDescriptorSetLayout(resbShaderBackend);
+	// invoke the API to create pipeline data
+	CreateGraphicsPipeline(strVertexProgram, strPixelProgram, resbShaderBackend);
+	// create the descriptor pool
+	CreateDescriptorPool(resbShaderBackend);
+	// create the descriptor set
+	CreateDescriptorSet(resbShaderBackend);
+}
+
+
+// Destroy the shader and all allocated resources.
+void GfxAPIVulkan::DestroyShader(ShaderBackendVulkan *resbShaderBackend) {
+	// destroy backend representation of a texture
+	GfxAPIVulkan::Get()->DestroyGraphicsPipeline(resbShaderBackend);
+
+	// destroy the desctiptor pool
+	vkDestroyDescriptorPool(vkhLogicalDevice, resbShaderBackend->vkhDescriptorPool, nullptr);
+
+	// destroy the descriptor set layout
+	GfxAPIVulkan::Get()->DestroyDescriptorSetLayout(resbShaderBackend);
 }
 
 
@@ -1759,8 +1781,10 @@ void GfxAPIVulkan::DestroyBuffer(VkBuffer vkhBuffer, VkDeviceMemory vkhBufferMem
 
 
 // create the descriptor pool
-void GfxAPIVulkan::CreateDescriptorPool() {
-    // describe the descriptors that go into this pool
+void GfxAPIVulkan::CreateDescriptorPool(ShaderBackendVulkan *resbShaderBackend) {
+	// TODO: this needs to be per shader
+
+	// describe the descriptors that go into this pool
     std::array<VkDescriptorPoolSize, 2> ainfoPoolSizes = {};
     // the first one is the pool for uniform buffer descriptors
     ainfoPoolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -1781,16 +1805,18 @@ void GfxAPIVulkan::CreateDescriptorPool() {
     infoDescriptorPool.maxSets = 1;
 
     // create the descriptor pool
-    if (vkCreateDescriptorPool(vkhLogicalDevice, &infoDescriptorPool, nullptr, &vkhDescriptorPool) != VK_SUCCESS) {
+    if (vkCreateDescriptorPool(vkhLogicalDevice, &infoDescriptorPool, nullptr, &resbShaderBackend->vkhDescriptorPool) != VK_SUCCESS) {
         throw std::runtime_error("Failed to create the descriptor pool");
     }
 }
 
 
 // Create the descriptor set.
-void GfxAPIVulkan::CreateDescriptorSet() {
-    // prepare the layouts for binding
-    VkDescriptorSetLayout avkhLayouts[] = { vkhDescriptorSetLayout };
+void GfxAPIVulkan::CreateDescriptorSet(ShaderBackendVulkan *resbShaderBackend) {
+	// TODO: this needs to be per shader
+
+	// prepare the layouts for binding
+    VkDescriptorSetLayout avkhLayouts[] = { resbShaderBackend->vkhDescriptorSetLayout };
 
     //describe the descriptor set allocation
     VkDescriptorSetAllocateInfo infoDescriptorSetAllocation = {};
@@ -1799,16 +1825,18 @@ void GfxAPIVulkan::CreateDescriptorSet() {
     infoDescriptorSetAllocation.descriptorSetCount = 1;
     infoDescriptorSetAllocation.pSetLayouts = avkhLayouts;
     // bind the descriptor pool
-    infoDescriptorSetAllocation.descriptorPool = vkhDescriptorPool;
+    infoDescriptorSetAllocation.descriptorPool = resbShaderBackend->vkhDescriptorPool;
 
     // create the descriptor set
-    if (vkAllocateDescriptorSets(vkhLogicalDevice, &infoDescriptorSetAllocation, &vkhDescriptorSet) != VK_SUCCESS) {
+    if (vkAllocateDescriptorSets(vkhLogicalDevice, &infoDescriptorSetAllocation, &resbShaderBackend->vkhDescriptorSet) != VK_SUCCESS) {
         throw std::runtime_error("Unable to allocate the descriptor set");
     }
 }
 
 // Update the descriptor set.
-void GfxAPIVulkan::UpdateDescriptorSet() {
+void GfxAPIVulkan::UpdateDescriptorSet(const RenderablePtr &renRenderable) {
+	auto* resbShaderBackend = static_cast<ShaderBackendVulkan*>(renRenderable->GetModel()->GetShader()->GetBackend());
+	auto* resbTextureBackend = static_cast<TextureBackendVulkan*>(renRenderable->GetModel()->GetTexture()->GetBackend());
 
     // use a descriptor to describe the uniform buffer
     VkDescriptorBufferInfo infoUniformBuffer = {};
@@ -1823,10 +1851,9 @@ void GfxAPIVulkan::UpdateDescriptorSet() {
     VkDescriptorImageInfo infoImage = {};
     // set the image layout to optimal for reading from a fragment shader
     infoImage.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    const TextureBackendVulkan *resbTexture = aresbTextureBackends[0];
     // set the image view and sampler
-    infoImage.imageView = resbTexture->vkhImageView;
-    infoImage.sampler = resbTexture->vkhImageSampler;
+    infoImage.imageView = resbTextureBackend->vkhImageView;
+    infoImage.sampler = resbTextureBackend->vkhImageSampler;
 
     // describe how to update the descriptor sets
     std::array<VkWriteDescriptorSet, 2> ainfoUpdateDescriptorSets = {};
@@ -1834,7 +1861,7 @@ void GfxAPIVulkan::UpdateDescriptorSet() {
     // describe the set for the uniform buffer
     ainfoUpdateDescriptorSets[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     // mark the set to update
-    ainfoUpdateDescriptorSets[0].dstSet = vkhDescriptorSet;
+    ainfoUpdateDescriptorSets[0].dstSet = resbShaderBackend->vkhDescriptorSet;
     // set the shader binding for the uniform
     ainfoUpdateDescriptorSets[0].dstBinding = 0;
     // the descriptor doesn't describe an array
@@ -1849,7 +1876,7 @@ void GfxAPIVulkan::UpdateDescriptorSet() {
     // describe the set for the image sampler
     ainfoUpdateDescriptorSets[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     // mark the set to update
-    ainfoUpdateDescriptorSets[1].dstSet = vkhDescriptorSet;
+    ainfoUpdateDescriptorSets[1].dstSet = resbShaderBackend->vkhDescriptorSet;
     // set the shader binding for the sampler
     ainfoUpdateDescriptorSets[1].dstBinding = 1;
     // the descriptor doesn't describe an array
@@ -2034,20 +2061,25 @@ void GfxAPIVulkan::UpdateUniformBuffer() {
 }
 
 // Render a frame.
-void GfxAPIVulkan::Render() {
+void GfxAPIVulkan::Render(RenderableDrawList& renderableDrawList) {
+	arenRenderableDrawList = &renderableDrawList;
+
+	const auto &renRenderable = (*arenRenderableDrawList)[0];
+
     // update model, view and perspective matrices
     UpdateUniformBuffer();
 
     // update the descirptor set - uniform and texture bindings
-    UpdateDescriptorSet();
+    UpdateDescriptorSet(renRenderable);
 
-    // record command buffers to draw
-    RecordCommandBuffers();
     // obtain a target image from the swap chain
     // setting max uint64 as the timeout (in nanoseconds) disables the timeout
     // when the image becomes available the syncImageAvailable semaphore will be signaled
     uint32_t iImage;
     VkResult statusResult  = vkAcquireNextImageKHR(vkhLogicalDevice, vkhSwapChain, std::numeric_limits<uint64_t>::max(), vkhImageAvailableSemaphore, VK_NULL_HANDLE, &iImage);
+
+	// record command buffers to draw
+	RecordCommandBuffers(iImage);
 
     // if acquiring the image failed because the swap chain has become incompatible with the surface
     if (statusResult == VK_ERROR_OUT_OF_DATE_KHR) {
@@ -2134,7 +2166,24 @@ MeshBackend *GfxAPIVulkan::CreateBackend(Mesh *resFrontend) {
 // Destroy and unregister a mesh backend.
 void GfxAPIVulkan::DestroyBackend(MeshBackend *resbBackend) {
     aresbMeshBackends.erase(std::remove(aresbMeshBackends.begin(), aresbMeshBackends.end(), resbBackend), aresbMeshBackends.end());
+	delete resbBackend;
 }
+
+
+// Create the backend (API internal) representation for a frontend (external, API agnostic) shader.
+ShaderBackend *GfxAPIVulkan::CreateBackend(Shader* resFrontend, const std::string &strVertexProgram, const std::string &strPixelProgram) {
+	ShaderBackendVulkan *resbBackend = new ShaderBackendVulkan(resFrontend, strVertexProgram, strPixelProgram);
+	aresbShaderBackends.push_back(resbBackend);
+	return resbBackend;
+}
+
+
+// Destroy and unregister a shader backend.
+void GfxAPIVulkan::DestroyBackend(ShaderBackend *resbBackend) {
+	aresbShaderBackends.erase(std::remove(aresbShaderBackends.begin(), aresbShaderBackends.end(), resbBackend), aresbShaderBackends.end());
+	delete resbBackend;
+}
+
 
 // Create the backend (API internal) representation for a frontend (external, API agnostic) texture.
 TextureBackend *GfxAPIVulkan::CreateBackend(Texture *resFrontend, const unsigned char *aubTextureData) {
@@ -2146,6 +2195,7 @@ TextureBackend *GfxAPIVulkan::CreateBackend(Texture *resFrontend, const unsigned
 // Destroy and unregister a mesh backend.
 void GfxAPIVulkan::DestroyBackend(TextureBackend *resbBackend) {
     aresbTextureBackends.erase( std::remove(aresbTextureBackends.begin(), aresbTextureBackends.end(), resbBackend), aresbTextureBackends.end());
+	delete resbBackend;
 }
 
 // destroy all existing backends
@@ -2155,7 +2205,12 @@ void GfxAPIVulkan::DestroyBackends() {
     }
     aresbMeshBackends.clear();
 
-    for (TextureBackendVulkan *resbTextureBackend : aresbTextureBackends) {
+	for (ShaderBackendVulkan *resbShaderBackend : aresbShaderBackends) {
+		delete resbShaderBackend;
+	}
+	aresbShaderBackends.clear();
+	
+	for (TextureBackendVulkan *resbTextureBackend : aresbTextureBackends) {
         delete resbTextureBackend;
     }
     aresbTextureBackends.clear();

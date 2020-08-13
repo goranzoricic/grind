@@ -5,7 +5,11 @@
 #include "Resources/ResourcePtr.h"
 #include "Resources/Mesh.h"
 #include "Resources/Model.h"
+#include "Resources/Shader.h"
 #include "Resources/Texture.h"
+#include "Renderer/Renderable.h"
+
+class Renderable;
 
 class Application {
 public:
@@ -20,16 +24,27 @@ private:
 
     // Start the graphics API and create the window.
     void InitializeGraphics();
-    // Obtain resources used by the application.
-    void ObtainResources();
-    // Program's main loop
-	void MainLoop();
-	// Clean up Vulkan API and destroy the application window
-	void Cleanup();
 
 private:
-    ResourcePtr<Mesh> rpMesh = { nullptr };
+	// Obtain resources used by the application.
+	void ObtainResources();
+	// Create the objects to render.
+	void CreateRenderables();
+	// Destroy all renderables.
+	void DestroyRenderables();
+	// Program's main loop
+	void MainLoop();
+	// Clear all resource pointers, to unload resources.
+	void ReleaseResources();
+	// Clean up Vulkan API and destroy the application window.
+	void Cleanup();
+
+	ResourcePtr<Mesh> rpMesh = { nullptr };
     ResourcePtr<Mesh> rpMesh2 = { nullptr };
     ResourcePtr<Model> rpModel = { nullptr };
-    ResourcePtr<Texture> rpTexture = { nullptr };
+	ResourcePtr<Shader> rpShader = { nullptr };
+	ResourcePtr<Texture> rpTexture = { nullptr };
+
+	std::shared_ptr<Renderable> _renderableSphere;
+	std::shared_ptr<Renderable> _renderableCube;
 };

@@ -9,6 +9,9 @@ struct GLFWwindow;
 class Mesh;
 class MeshBackend;
 class MeshBackendVulkan;
+class Shader;
+class ShaderBackend;
+class ShaderBackendVulkan;
 class Texture;
 class TextureBackend;
 class TextureBackendVulkan;
@@ -44,19 +47,25 @@ public:
     virtual bool Destroy();
 
     // Render a frame.
-    virtual void Render(); 
+    virtual void Render(RenderableDrawList& renderableDrawList);
 
     // Create the backend (API internal) representation for a frontend (external, API agnostic) mesh.
     virtual MeshBackend *CreateBackend(Mesh *resFrontend);
     // Destroy and unregister a mesh backend.
     virtual void DestroyBackend(MeshBackend *resbBackend);
 
-    // Create the backend (API internal) representation for a frontend (external, API agnostic) texture.
+	// Create the backend (API internal) representation for a frontend (external, API agnostic) shader.
+	virtual ShaderBackend *CreateBackend(Shader* resFrontend, const std::string &strVertexProgram, const std::string &strPixelProgram);
+	// Destroy and unregister a shader backend.
+	virtual void DestroyBackend(ShaderBackend *resbBackend);
+	
+	// Create the backend (API internal) representation for a frontend (external, API agnostic) texture.
     virtual TextureBackend *CreateBackend(Texture *resFrontend, const unsigned char *aubTextureData);
     // Destroy and unregister a mesh backend.
     virtual void DestroyBackend(TextureBackend *resbBackend);
 
-    // Create vertex buffer.
+
+	// Create vertex buffer.
     void CreateVertexBuffer(const std::vector<Vertex> &avVertices, VkBuffer &vkhVertexBuffer, VkDeviceMemory &vkhVertexBufferMemory);
     // Create index buffer.
     void CreateIndexBuffer(const std::vector<uint32_t> &aiIndices, VkBuffer &vkhIndexBuffer, VkDeviceMemory &vkhIndexBufferMemory);
@@ -65,6 +74,11 @@ public:
     void CreateTextureImage(const Texture *resTextureFrontend, const unsigned char *aubTextureData, TextureBackendVulkan *resbTextureBackend);
     // Destroy a texture.
     void DestroyTextureImage(TextureBackendVulkan *resbBackend);
+
+	// Create a shader and all required Vulkan resources for it.
+	void CreateShader(ShaderBackendVulkan *resbShaderBackend, const std::string &strVertexProgram, const std::string &strPixelProgram);
+	// Destroy the shader and all allocated resources.
+	void DestroyShader(ShaderBackendVulkan *resbShaderBackend);
 
     // Destroy a vulkan buffer and free associated memory.
     void DestroyBuffer(VkBuffer vkhBuffer, VkDeviceMemory vkhBufferMemory);
@@ -146,10 +160,6 @@ private:
 
     // Create the render pass.
 	void CreateRenderPass();
-    // Create descriptor sets - used to bind uniforms to shaders.
-    void CreateDescriptorSetLayout();
-	// Create the graphics pipeline.
-	void CreateGraphicsPipeline();
 
     // Create the framebuffers.
     void CreateFramebuffers();
@@ -161,8 +171,8 @@ private:
     // Create the command buffers.
     void CreateCommandBuffers();
 
-    // Record the command buffers - NOTE: this is for the simple drawing from the tutorial.
-    void RecordCommandBuffers();
+	// Record the command buffer, only for the current swapchain image. - NOTE: this is for the simple drawing from the tutorial.
+	void RecordCommandBuffers(const uint32_t iCommandBuffer);
 
     // Create semaphores for syncing buffer and renderer access.
     void CreateSemaphores();
@@ -191,12 +201,22 @@ private:
     // Create uniform buffer.
     void CreateUniformBuffers();
 
-    // Create the descriptor pool.
-    void CreateDescriptorPool();
+	// Create descriptor sets - used to bind uniforms to shaders.
+	void CreateDescriptorSetLayout(ShaderBackendVulkan *resbShaderBackend);
+	// Destroy the descriptor set layout.
+	void DestroyDescriptorSetLayout(ShaderBackendVulkan *resbShaderBackend);
+
+	// Create the graphics pipeline.
+	void CreateGraphicsPipeline(const std::string &strVertexProgram, const std::string &strPixelProgram, ShaderBackendVulkan *resbShaderBackend);
+	// Destroy the graphics pipeline.
+	void DestroyGraphicsPipeline(ShaderBackendVulkan *resbShaderBackend);
+	
+	// Create the descriptor pool.
+    void CreateDescriptorPool(ShaderBackendVulkan *resbShaderBackend);
     // Create the descriptor set.
-    void CreateDescriptorSet();
+    void CreateDescriptorSet(ShaderBackendVulkan *resbShaderBackend);
     // Update the descriptor set.
-    void UpdateDescriptorSet();
+    void UpdateDescriptorSet(const RenderablePtr &renRenderable);
 
     // Get the graphics memory type with the desired properties.
     uint32_t FindMemoryType(uint32_t flgTypeFilter, VkMemoryPropertyFlags flgProperties);
@@ -260,14 +280,6 @@ private:
 	// Render pass applied to render objects.
 	VkRenderPass vkhRenderPass;
 	
-    // Descriptor set layout for uniform buffers.
-    VkDescriptorSetLayout vkhDescriptorSetLayout;
-
-    // Layout of the graphics pipeline.
-	VkPipelineLayout vkhPipelineLayout;
-    // Graphics pipeline.
-    VkPipeline vkhPipeline;
-
     // Framebuffers used to draw.
     std::vector<VkFramebuffer> avkhFramebuffers;
 
@@ -303,15 +315,15 @@ private:
     // Memory used by the uniform buffer.
     VkDeviceMemory vkhUniformBufferMemory;
 
-    // Descriptor pool used to allocate descriptor sets.
-    VkDescriptorPool vkhDescriptorPool;
-    // Descriptor set that will hold the uniform buffer.
-    VkDescriptorSet vkhDescriptorSet;
-
     // Array of active mesh backends.
     std::vector<MeshBackendVulkan *> aresbMeshBackends;
-    // Array of active texture backends.
+	// Array of active shader backends.
+	std::vector<ShaderBackendVulkan *> aresbShaderBackends;
+	// Array of active texture backends.
     std::vector<TextureBackendVulkan *> aresbTextureBackends;
+
+	// Collection of all renderables that are drawn each frame.
+	GfxAPI::RenderableDrawList* arenRenderableDrawList = { nullptr };
 
     // NOTE: refactor this.
     // Describe to the Vulkan API how to handle Vertex data.

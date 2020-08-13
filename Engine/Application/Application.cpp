@@ -9,15 +9,18 @@
 #include "GfxAPI/GfxAPI.h"
 #include "GfxAPI/Window.h"
 #include "Resources/ResourcePtr.hpp"
-
+#include "Renderer/Renderer.h"
+#include "Renderer/Renderable.h"
 
 // Run the application - initialize, run the main loop, cleanup at the end.
 void Application::Run() {
     // start the graphics API
     InitializeGraphics();
-    // obtain resources
-    ObtainResources();
-    // program's main loop
+	// obtain resources
+	ObtainResources();
+	// create the objects to render
+	CreateRenderables();
+	// program's main loop
     MainLoop();
     // clean up Vulkan API and destroy the application window
     Cleanup();
@@ -38,6 +41,10 @@ void Application::InitializeGraphics() {
 
     // initialize the API and let it create the window
     apiGfxAPI->Initialize(options.GetWindowWidth(), options.GetWindowHeight());
+
+	// create the renderer
+	const auto *renderer = Renderer::Create();
+	assert(renderer != nullptr);
 }
 
 // Obtain resources used by the application.
@@ -45,9 +52,26 @@ void Application::ObtainResources() {
     rpMesh = Mesh::Obtain("../sphere.obj");
     rpMesh2 = Mesh::Obtain("../cube.obj");
 	rpModel = Model::Obtain("../model.model");
+	rpShader = Shader::Obtain("../shader.shader");
 	rpTexture = Texture::Obtain("../uv_checker.png");
 }
 
+
+// Create the objects to render.
+void Application::CreateRenderables() {
+	_renderableSphere = std::make_shared<Renderable>("../model.model");
+	Renderer::Get()->addRenderable(_renderableSphere);
+	_renderableCube = std::make_shared<Renderable>("../model2.model");
+	Renderer::Get()->addRenderable(_renderableCube);
+}
+
+// Destroy all renderables.
+void Application::DestroyRenderables() {
+	Renderer::Get()->removeRenderable(_renderableSphere);
+	_renderableSphere == nullptr;
+	Renderer::Get()->removeRenderable(_renderableCube);
+	_renderableCube == nullptr;
+}
 
 // Program's main loop
 void Application::MainLoop() {
@@ -58,14 +82,26 @@ void Application::MainLoop() {
     std::shared_ptr<Window> wndWindow = apiGfx->GetWindow();
 	while (!wndWindow->ShouldClose()) {
         wndWindow->ProcessMessages();
-        apiGfx->Render();
+		Renderer::Get()->Render();
 	}
 }
 
+// Clear all resource pointers, to unload resources.
+void Application::ReleaseResources()
+{
+	rpTexture = nullptr;
+	rpShader = nullptr;
+	rpModel = nullptr;
+	rpMesh2 = nullptr;
+	rpMesh = nullptr;
+}
 
 // Clean up Vulkan API and destroy the application window
 void Application::Cleanup() {
-    GfxAPI::Get()->Destroy();
+	// clear all resource pointers, to have a gracefull exit
+	ReleaseResources();
+	// destroy the graphics API
+	GfxAPI::Get()->Destroy();
 }
 
 

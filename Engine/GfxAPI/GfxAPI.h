@@ -1,6 +1,6 @@
 #pragma once
 
-enum GfxAPIType {
+enum class GfxAPIType {
     GFX_API_TYPE_INVALID = -1,
     GFX_API_TYPE_NULL = 0,
     GFX_API_TYPE_VULKAN = 1,
@@ -8,8 +8,12 @@ enum GfxAPIType {
 
 class Window;
 
+class Renderable;
+
 class Mesh;
 class MeshBackend;
+class Shader;
+class ShaderBackend;
 class Texture;
 class TextureBackend;
 
@@ -26,6 +30,10 @@ public:
     // Forbid the copy constructor and assignment to prevent multiple copies.
     GfxAPI(GfxAPI const &) = delete;
     void operator = (GfxAPI const &) = delete;
+
+	// Type of the renderable pointer and the list of renderables to draw.
+	using RenderablePtr = std::shared_ptr<Renderable>;
+	using RenderableDrawList = std::vector<RenderablePtr>;
 
 // Public interface.
 public:
@@ -45,13 +53,17 @@ public:
     std::shared_ptr<Window> &GetWindow() { return _wndWindow;  }
 
     // Render a frame.
-    virtual void Render() = 0;
+    virtual void Render(RenderableDrawList& renderableDrawList) = 0;
 
     // Create the backend (API internal) representation for a frontend (external, API agnostic) mesh.
     virtual MeshBackend *CreateBackend(Mesh *resFrontend) = 0;
     // Destroy and unregister a mesh backend.
     virtual void DestroyBackend(MeshBackend *resbBackend) = 0;
-    // Create the backend (API internal) representation for a frontend (external, API agnostic) texture.
+	// Create the backend (API internal) representation for a frontend (external, API agnostic) shader.
+	virtual ShaderBackend *CreateBackend(Shader* resFrontend, const std::string &strVertexProgram, const std::string &strPixelProgram) = 0;
+	// Destroy and unregister a shader backend.
+	virtual void DestroyBackend(ShaderBackend *resbBackend) = 0;
+	// Create the backend (API internal) representation for a frontend (external, API agnostic) texture.
     virtual TextureBackend *CreateBackend(Texture *resFrontend, const unsigned char *aubTextureData) = 0;
     // Destroy and unregister a mesh backend.
     virtual void DestroyBackend(TextureBackend *resbBackend) = 0;

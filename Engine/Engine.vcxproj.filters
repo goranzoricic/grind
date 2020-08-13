@@ -50,6 +50,21 @@
     <ClCompile Include="Resources\Model.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\Renderer.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Renderable.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Resources\Shader.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="GfxAPI\ShaderBackend.cpp">
+      <Filter>GfxAPI</Filter>
+    </ClCompile>
+    <ClCompile Include="GfxAPIVulkan\ShaderBackendVulkan.cpp">
+      <Filter>GfxAPIVulkan</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Application">
@@ -78,6 +93,9 @@
     </Filter>
     <Filter Include="Geometry">
       <UniqueIdentifier>{03936280-307f-4539-b085-713376e9457b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer">
+      <UniqueIdentifier>{543b372d-ad3d-42d4-8fee-c1cb59f1f3b7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -127,7 +145,6 @@
     <ClInclude Include="GfxAPIVulkan\MeshBackendVulkan.h">
       <Filter>GfxAPIVulkan</Filter>
     </ClInclude>
-    <ClInclude Include="Resources\ResourcePtr.hpp" />
     <ClInclude Include="Geometry\Vertex.h">
       <Filter>Geometry</Filter>
     </ClInclude>
@@ -141,6 +158,24 @@
       <Filter>Resources</Filter>
     </ClInclude>
     <ClInclude Include="Resources\Model.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Renderable.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Renderer.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\Shader.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="GfxAPI\ShaderBackend.h">
+      <Filter>GfxAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="GfxAPIVulkan\ShaderBackendVulkan.h">
+      <Filter>GfxAPIVulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\ResourcePtr.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
   </ItemGroup>

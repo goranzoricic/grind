@@ -37,11 +37,12 @@ public:
 
     // Load the Texture from a .png file.
 	void LoadPNG();
-    // Release loaded data after it has been .
-    void ReleaseData();
 
-    // Get the Texture's information.
+	// Get the Texture's information.
     const TextureDescription &GetTextureInfo() const { return infTextureDescription; }
+
+	// getter for the backend. Note that this is not a virtual function.
+	TextureBackend *GetBackend() { return backTexture; }
 
 private:
     // Destroy the Texture. 
