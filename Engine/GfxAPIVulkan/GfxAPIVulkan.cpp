@@ -19,6 +19,7 @@
 #include <GfxAPIVulkan/ShaderBackendVulkan.h>
 #include <GfxAPIVulkan/TextureBackendVulkan.h>
 
+#define VK_CHECK(command, message) if ((command) != VK_SUCCESS) { throw std::runtime_error(message); }
 
 // List of validation layers' names that we want to enable.
 const std::vector<const char*> validationLayers = {
@@ -246,12 +247,7 @@ void GfxAPIVulkan::CreateInstance() {
     }
 
     // create the vulkan instance
-    VkResult result = vkCreateInstance(&infoInstance, nullptr, &vkhAPIInstance);
-
-    // if the instance wasn't created successfully, throw
-    if (result != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create a Vulkan instance");
-    }
+    VK_CHECK(vkCreateInstance(&infoInstance, nullptr, &vkhAPIInstance), "Failed to create a Vulkan instance");
 }
 
 
@@ -397,10 +393,8 @@ void GfxAPIVulkan::SetupValidationErrorCallback() {
     if (Options::Get().ShouldUseValidationLayers()) {
         // the function that creates the actual callback has to be obtained through vkGetInstanceProcAddr
         auto vkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(vkhAPIInstance, "vkCreateDebugReportCallbackEXT");
-        // create the callback, and throw an exception if creation fails
-        if (vkCreateDebugReportCallbackEXT == nullptr || vkCreateDebugReportCallbackEXT(vkhAPIInstance, &infoCallback, nullptr, &vkhValidationCallback) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to set up the validation layer debug callback");
-        }
+        // create the callback
+        VK_CHECK(vkCreateDebugReportCallbackEXT == nullptr || vkCreateDebugReportCallbackEXT(vkhAPIInstance, &infoCallback, nullptr, &vkhValidationCallback), "Failed to set up the validation layer debug callback");
     }
 }
 
@@ -423,9 +417,7 @@ void GfxAPIVulkan::DestroyValidationErrorCallback() {
 
 // Create the surface to present render buffers to.
 void GfxAPIVulkan::CreateSurface() {
-    if (glfwCreateWindowSurface(vkhAPIInstance, _wndWindow->GetHandle(), nullptr, &sfcSurface) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create the window surface");
-    }
+    VK_CHECK(glfwCreateWindowSurface(vkhAPIInstance, _wndWindow->GetHandle(), nullptr, &sfcSurface), "Failed to create the window surface");
 }
 
 // Select the physical device (graphics card) to render on
@@ -626,9 +618,7 @@ void GfxAPIVulkan::CreateSwapChain() {
     infoSwapChain.oldSwapchain = VK_NULL_HANDLE;
 
     // create the swap chain
-    if (vkCreateSwapchainKHR(vkhLogicalDevice, &infoSwapChain, nullptr, &vkhSwapChain) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create the swap chain");
-    }
+    VK_CHECK(vkCreateSwapchainKHR(vkhLogicalDevice, &infoSwapChain, nullptr, &vkhSwapChain), "Failed to create the swap chain");
 
     // get the handles to swap chain images
     vkGetSwapchainImagesKHR(vkhLogicalDevice, vkhSwapChain, &ctImages, nullptr);
@@ -771,9 +761,7 @@ void GfxAPIVulkan::CreateLogicalDevice() {
     }
 
     // create the logical device
-    if (vkCreateDevice(vkhPhysicalDevice, &infoLogicalDevice, nullptr, &vkhLogicalDevice) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create the logical device");
-    }
+    VK_CHECK(vkCreateDevice(vkhPhysicalDevice, &infoLogicalDevice, nullptr, &vkhLogicalDevice), "Failed to create the logical device");
 
     // retreive the handle to the graphics queue
     vkGetDeviceQueue(vkhLogicalDevice, iGraphicsQueueFamily, 0, &vkhGraphicsQueue);
@@ -796,9 +784,7 @@ VkShaderModule GfxAPIVulkan::CreateShaderModule(const std::string &strFilename) 
 
     // createh the shader module
     VkShaderModule modShaderModule;
-    if (vkCreateShaderModule(vkhLogicalDevice, &infoShaderModule, nullptr, &modShaderModule) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create a shader module");
-    }
+    VK_CHECK(vkCreateShaderModule(vkhLogicalDevice, &infoShaderModule, nullptr, &modShaderModule), "Failed to create a shader module");
 
     return modShaderModule;
 }
@@ -914,10 +900,7 @@ void GfxAPIVulkan::CreateRenderPass() {
 	infoRenderPass.pAttachments = ainfoAttachments.data();
 
 	// finally, create the render pass
-	if (vkCreateRenderPass(vkhLogicalDevice, &infoRenderPass, nullptr, &vkhRenderPass) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create the render pass");
-	}
-
+    VK_CHECK(vkCreateRenderPass(vkhLogicalDevice, &infoRenderPass, nullptr, &vkhRenderPass), "Failed to create the render pass");
 }
 
 
@@ -958,9 +941,7 @@ void GfxAPIVulkan::CreateDescriptorSetLayout(ShaderBackendVulkan *resbShaderBack
     infoDescriptorSetLayout.pBindings = ainfoBindings.data();
 
     // create the layout
-    if (vkCreateDescriptorSetLayout(vkhLogicalDevice, &infoDescriptorSetLayout, nullptr, &resbShaderBackend->vkhDescriptorSetLayout) != VK_SUCCESS) {
-        throw std::runtime_error("Unable to create the descriptor set layout");
-    }
+    VK_CHECK(vkCreateDescriptorSetLayout(vkhLogicalDevice, &infoDescriptorSetLayout, nullptr, &resbShaderBackend->vkhDescriptorSetLayout), "Unable to create the descriptor set layout");
 }
 
 
@@ -1124,9 +1105,7 @@ void GfxAPIVulkan::CreateGraphicsPipeline(const std::string &strVertexProgram, c
 	infoPipelineLayout.pPushConstantRanges = 0;
 
 	// create the pipeline layout
-	if (vkCreatePipelineLayout(vkhLogicalDevice, &infoPipelineLayout, nullptr, &(resbShaderBackend->vkhPipelineLayout)) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create the pipeline layout!");
-	}
+    VK_CHECK(vkCreatePipelineLayout(vkhLogicalDevice, &infoPipelineLayout, nullptr, &(resbShaderBackend->vkhPipelineLayout)), "Failed to create the pipeline layout!");
 
     // describe the depth and stencil state
     VkPipelineDepthStencilStateCreateInfo infoPipelineDepthStencilState = {};
@@ -1170,9 +1149,7 @@ void GfxAPIVulkan::CreateGraphicsPipeline(const std::string &strVertexProgram, c
     infoGraphicsPipeline.basePipelineIndex = -1;
 
     // create the graphics pipeline
-    if (vkCreateGraphicsPipelines(vkhLogicalDevice, VK_NULL_HANDLE, 1, &infoGraphicsPipeline, nullptr, &(resbShaderBackend->vkhPipeline)) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create the graphics pipeline");
-    }
+    VK_CHECK(vkCreateGraphicsPipelines(vkhLogicalDevice, VK_NULL_HANDLE, 1, &infoGraphicsPipeline, nullptr, &(resbShaderBackend->vkhPipeline)), "Failed to create the graphics pipeline");
 
     // destroy shader modules - they are a part of the graphics pipeline
     vkDestroyShaderModule(vkhLogicalDevice, modFrag, nullptr);
@@ -1220,9 +1197,7 @@ void GfxAPIVulkan::CreateFramebuffers() {
         infoFramebuffer.attachmentCount = static_cast<uint32_t>(avkhAttachments.size());
 
         // create the framebuffer
-        if (vkCreateFramebuffer(vkhLogicalDevice, &infoFramebuffer, nullptr, &avkhFramebuffers[iImageView]) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to create a framebuffer");
-        }
+        VK_CHECK(vkCreateFramebuffer(vkhLogicalDevice, &infoFramebuffer, nullptr, &avkhFramebuffers[iImageView]), "Failed to create a framebuffer");
     }
 }
 
@@ -1245,9 +1220,7 @@ void GfxAPIVulkan::CreateCommandPool() {
     infoCommandPool.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
     // create the command pool
-    if (vkCreateCommandPool(vkhLogicalDevice, &infoCommandPool, nullptr, &vkhCommandPool) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create the command pool");
-    }
+    VK_CHECK(vkCreateCommandPool(vkhLogicalDevice, &infoCommandPool, nullptr, &vkhCommandPool), "Failed to create the command pool");
 }
 
 // Create the command buffers.
@@ -1266,9 +1239,7 @@ void GfxAPIVulkan::CreateCommandBuffers() {
     infoAllocateBuffers.commandBufferCount = (uint32_t) avkhCommandBuffers.size();
 
     // allocate the command buffers
-    if (vkAllocateCommandBuffers(vkhLogicalDevice, &infoAllocateBuffers, avkhCommandBuffers.data()) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create allocate command buffers");
-    }
+    VK_CHECK(vkAllocateCommandBuffers(vkhLogicalDevice, &infoAllocateBuffers, avkhCommandBuffers.data()), "Failed to create allocate command buffers");
 }
 
 
@@ -1331,9 +1302,7 @@ void GfxAPIVulkan::RecordCommandBuffers(const uint32_t iCommandBuffer) {
     vkCmdEndRenderPass(vkhCommandBuffer);
 
     // end the command buffer
-    if (vkEndCommandBuffer(vkhCommandBuffer) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to record command buffer");
-    }
+    VK_CHECK(vkEndCommandBuffer(vkhCommandBuffer), "Failed to record command buffer");
 }
 
 // Create semaphores for syncing buffer and renderer access.
@@ -1344,10 +1313,8 @@ void GfxAPIVulkan::CreateSemaphores() {
     infoSemaphore.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
     // cerate the semaphores
-    if (vkCreateSemaphore(vkhLogicalDevice, &infoSemaphore, nullptr, &vkhImageAvailableSemaphore) != VK_SUCCESS ||
-        vkCreateSemaphore(vkhLogicalDevice, &infoSemaphore, nullptr, &vkhRenderSemaphore) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create semaphores");
-    }
+    VK_CHECK(vkCreateSemaphore(vkhLogicalDevice, &infoSemaphore, nullptr, &vkhImageAvailableSemaphore), "Failed to create semaphores");
+    VK_CHECK(vkCreateSemaphore(vkhLogicalDevice, &infoSemaphore, nullptr, &vkhRenderSemaphore), "Failed to create semaphores");
 }
 
 // Delete the semaphores.
@@ -1431,9 +1398,7 @@ void GfxAPIVulkan::CreateTextureImage(const Texture *resTextureFrontend, const u
     infoSampler.maxLod = 0.0f;
 
     // create the sampler
-    if (vkCreateSampler(vkhLogicalDevice, &infoSampler, nullptr, &resbTextureBackend->vkhImageSampler) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create the texture sampler");
-    }
+    VK_CHECK(vkCreateSampler(vkhLogicalDevice, &infoSampler, nullptr, &resbTextureBackend->vkhImageSampler), "Failed to create the texture sampler");
 }
 
 
@@ -1531,9 +1496,7 @@ VkImageView GfxAPIVulkan::CreateImageView(VkImage vkhImage, VkFormat fmtFormat, 
 
     // create the image view
     VkImageView vkhView;
-    if (vkCreateImageView(vkhLogicalDevice, &infoImageView, nullptr, &vkhView) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create an image view");
-    }
+    VK_CHECK(vkCreateImageView(vkhLogicalDevice, &infoImageView, nullptr, &vkhView), "Failed to create an image view");
 
     return vkhView;
 }
@@ -1569,9 +1532,7 @@ void GfxAPIVulkan::CreateImage(uint32_t dimWidth, uint32_t dimHeight, VkFormat f
     infoImage.flags = 0;
 
     // create the image
-    if (vkCreateImage(vkhLogicalDevice, &infoImage, nullptr, &vkhImage) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create the image");
-    }
+    VK_CHECK(vkCreateImage(vkhLogicalDevice, &infoImage, nullptr, &vkhImage), "Failed to create the image");
 
     // get the buffer's memory requirements
     VkMemoryRequirements propsMemoryRequirements = {};
@@ -1586,9 +1547,7 @@ void GfxAPIVulkan::CreateImage(uint32_t dimWidth, uint32_t dimHeight, VkFormat f
     infoImageMemory.memoryTypeIndex = FindMemoryType(propsMemoryRequirements.memoryTypeBits, flagMemoryProperties);
 
     // allocate the memory for the image
-    if (vkAllocateMemory(vkhLogicalDevice, &infoImageMemory, nullptr, &vkhMemory) != VK_SUCCESS) {
-        throw std::runtime_error("Unable to allocate memory for the image");
-    }
+    VK_CHECK(vkAllocateMemory(vkhLogicalDevice, &infoImageMemory, nullptr, &vkhMemory), "Unable to allocate memory for the image");
 
     // after a successfull allocation, bind the memory to the image
     vkBindImageMemory(vkhLogicalDevice, vkhImage, vkhMemory, 0);
@@ -1805,9 +1764,7 @@ void GfxAPIVulkan::CreateDescriptorPool(ShaderBackendVulkan *resbShaderBackend) 
     infoDescriptorPool.maxSets = 1;
 
     // create the descriptor pool
-    if (vkCreateDescriptorPool(vkhLogicalDevice, &infoDescriptorPool, nullptr, &resbShaderBackend->vkhDescriptorPool) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create the descriptor pool");
-    }
+    VK_CHECK(vkCreateDescriptorPool(vkhLogicalDevice, &infoDescriptorPool, nullptr, &resbShaderBackend->vkhDescriptorPool), "Failed to create the descriptor pool");
 }
 
 
@@ -1828,9 +1785,7 @@ void GfxAPIVulkan::CreateDescriptorSet(ShaderBackendVulkan *resbShaderBackend) {
     infoDescriptorSetAllocation.descriptorPool = resbShaderBackend->vkhDescriptorPool;
 
     // create the descriptor set
-    if (vkAllocateDescriptorSets(vkhLogicalDevice, &infoDescriptorSetAllocation, &resbShaderBackend->vkhDescriptorSet) != VK_SUCCESS) {
-        throw std::runtime_error("Unable to allocate the descriptor set");
-    }
+    VK_CHECK(vkAllocateDescriptorSets(vkhLogicalDevice, &infoDescriptorSetAllocation, &resbShaderBackend->vkhDescriptorSet), "Unable to allocate the descriptor set");
 }
 
 // Update the descriptor set.
@@ -1906,9 +1861,7 @@ void GfxAPIVulkan::CreateBuffer(VkDeviceSize ctSize, VkBufferUsageFlags flgBuffe
     infoBuffer.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
     // create the vertex buffer
-    if (vkCreateBuffer(vkhLogicalDevice, &infoBuffer, nullptr, &vkhBuffer) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create the vertex buffer");
-    }
+    VK_CHECK(vkCreateBuffer(vkhLogicalDevice, &infoBuffer, nullptr, &vkhBuffer), "Failed to create the vertex buffer");
 
     // get the buffer's memory requirements
     VkMemoryRequirements propsMemoryRequirements = {};
@@ -1923,9 +1876,7 @@ void GfxAPIVulkan::CreateBuffer(VkDeviceSize ctSize, VkBufferUsageFlags flgBuffe
     infoBufferMemory.memoryTypeIndex = FindMemoryType(propsMemoryRequirements.memoryTypeBits, flgMemoryProperties);
 
     // allocate the memory for the buffer
-    if (vkAllocateMemory(vkhLogicalDevice, &infoBufferMemory, nullptr, &vkhMemory) != VK_SUCCESS) {
-        throw std::runtime_error("Unable to allocate memory for the vertex buffer");
-    }
+    VK_CHECK(vkAllocateMemory(vkhLogicalDevice, &infoBufferMemory, nullptr, &vkhMemory), "Unable to allocate memory for the vertex buffer");
 
     // after a successfull allocation, bind the memory to the buffer
     vkBindBufferMemory(vkhLogicalDevice, vkhBuffer, vkhMemory, 0);
@@ -2115,9 +2066,7 @@ void GfxAPIVulkan::Render(RenderableDrawList& renderableDrawList) {
     infSubmit.pSignalSemaphores = asyncSignal;
 
     // submit the command buffers to the queue
-    if (vkQueueSubmit(vkhGraphicsQueue, 1, &infSubmit, VK_NULL_HANDLE) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to submit draw command buffer");
-    }
+    VK_CHECK(vkQueueSubmit(vkhGraphicsQueue, 1, &infSubmit, VK_NULL_HANDLE), "Failed to submit draw command buffer");
 
     // describe how to present the image
     VkPresentInfoKHR infPresent = {};
